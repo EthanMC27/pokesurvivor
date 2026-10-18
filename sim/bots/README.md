@@ -4,13 +4,17 @@ Cada fichero `sim/bots/<nombre>.js` exporta una fábrica `(opts) => bot` (ver la
 cabecera de `sim/engine.js` para la API). Se lanzan con
 `node sim/run.js --bot <nombre> --opts '{"...":...}'`.
 
+- **`best.js` — el mejor bot**: `pro-a.js` (movimiento, opciones de la ronda 4 apagadas) + `cards.js` v3
+  (por defecto = v2) y sus vetos. Ver "Ronda 4: integración" abajo.
+- `pa-f.js` — pro-a + cartas v2 congeladas (`cards-v2-frozen.js`), banco del movimiento.
 - `flee.js` — referencia tonta: huye de lo cercano y coge la primera carta.
 - `cards.js` — **sólo decisiones** (cartas, objetos, vínculos, 2.º movimiento, hueco activo). Sin movimiento propio.
 - `flee-cards.js` — `flee.js` + `cards.js`, para probar las decisiones.
-- `cards-v1.js` — la política v1, congelada (para comparar).
+- `cards-v1.js`, `cards-v2.js`, `cards-v3.js` — las políticas v1, v2 y v3, congeladas (para comparar; `opts.cards = 'v1' | 'v2'`).
+- `pro-a-frozen.js` — copia congelada de pro-a (commit c8f3101) para los experimentos de cartas; `opts.cardsFile` elige la política (por defecto `cards-v2`); `SIM_BANOPTS` cambia los vetos de `--ban auto`.
 - `with-cards.js`, `spacer-v1.js`, `spacer-v2.js` — un bot de movimiento con otra política de cartas (A/B).
 
-## cards.js — política de decisiones (v2)
+## cards.js — política de decisiones (v3 = v2 por defecto + opciones nuevas)
 
 Se mezcla en un bot de movimiento:
 
@@ -86,7 +90,7 @@ Desde la consola: `node sim/bots/cards.js 94 4 68`. Se pasan con `run.js --ban a
 
 | opción | por defecto | qué hace |
 |---|---|---|
-| `cards` | — | `'v1'` = usar la política v1 congelada |
+| `cards` | — | `'v1'` / `'v2'` = usar la política v1 / v2 congelada (en pro-a también `'v2f'` = `cards-v2-frozen.js`) |
 | `priority` | `[]` | ids preferidos, en orden: se aprenden (+1) y mejoran (+0,3) antes, y el primero que tengas es el foco |
 | `avoid` | `[]` | ids que no se cogen nunca (ni en vínculos, si hay otra opción) |
 | `statWeights` | `{}` | multiplicador por carta de stat: `{ hp, atk, spd, cd, def, rgn, mag, xp, heal }` (0 = nunca, salvo que sea lo único) |
@@ -146,6 +150,46 @@ Vetos recomendados (`node sim/bots/cards.js 94 4 68`): Gengar `agility,substitut
 Charmander `agility,will-o-wisp,substitute`; Machamp `agility,substitute,hyper-voice`.
 
 
+## cards.js v3 — experimentos de cartas (17/18-10-2026)
+
+**Por defecto la v3 decide exactamente igual que la v2** (comprobado: mismas partidas). Ninguno
+de los 15 cambios probados mejora el tiempo de forma clara y los que cambian mucho las
+decisiones lo empeoran, así que la v3 deja las decisiones de la v2 y añade las opciones (apagadas)
+para seguir probando. Guía para jugadores con los resultados: `sim/STRATEGY.md`.
+
+Montaje: `pro-a-frozen` + la política (`--opts '{"cardsFile":"cards-v3",...}'`), `--upgrades max
+--ban auto` (vetos de la v2 para todos), tope 1200 s, 8 Pokémon (94, 4, 68, 9, 25, 467, 469, 778)
+× semillas 1-10 = 80 partidas emparejadas por variante; las prometedoras, otra vez en 61-75
+(120 partidas). ×geo = media geométrica de t(variante)/t(v2) partida a partida, IC 95 % por
+bootstrap. Herramientas: `node sim/cardlab.js pair A.json B.json` (emparejado, también Potencias
+cogidas/ofrecidas, Coraza, Vigor...), `node sim/cardlab.js stats f.json`, `node sim/offerodds.js`
+(probabilidad de que salga Potencia según el estado, con el código real de levelup.js).
+`engine.js` apunta ahora en cada carta cogida las que había (`cards[i].of`). Datos: `sim/out/v3/`.
+
+| opción nueva | qué hace | resultado (×geo, IC 95 %) |
+|---|---|---|
+| `statWeights: {atk: 2}` | Potencia vale el doble | 0,96 (0,87-1,09); semillas 61-75: 1,02 (0,89-1,12). +1 Potencia por partida |
+| `potAfter: 1` | Potencia/Reflejos ×2 con el foco hecho | 0,93 (0,87-0,97) (casi nunca está "hecho" antes del min 20) |
+| `potSnow` | Potencia/Reflejos + x·(lo que queda de 30 min) | no probada |
+| `fillBonus: 0.3` (ya existía, 0,03) | llenar el último hueco cuanto antes | 0,93 (0,87-1,01) |
+| `maxMoves: 3` (ya existía) | sólo 3 movimientos en total | **0,64 (0,54-0,77)** |
+| `drainUp: 0.1` | con los 4 huecos llenos, subir lo suelto para que deje de salir | 0,91 (0,83-0,99) |
+| `drainStat: 0.1` | topar Carrera/Imán/Aprendizaje/Reflejos/Coraza | 0,94 (0,83-1,03) |
+| fill + drainUp + Potencia ×2 | "moldear el mazo" entero | 0,83 (0,75-0,92) |
+| `sideUp: 0` (ya existía, 0,05) | nada a lo que está fuera del plan | 0,99 (0,88-1,10); 61-75: 0,97 (0,89-1,06) |
+| `bondK: 1` (ya existía, 0,5) | invertir más en los compañeros de vínculo | 0,92 (0,80-1,10) |
+| `defTarget: 0.5` | Coraza siempre hasta el 50 % | 0,76 (0,64-0,91) |
+| `statWeights: {def: 0}` | nunca Coraza | 0,89 (0,79-1,03); Gengar 0,60 |
+| `plan: ['substitute']` + sin vetarlo | Sustituto aprendido, al máximo y al grupo | **0,62 (0,52-0,74)**, peor en los 8 |
+| `plan: ['swords-dance','dragon-dance']` | Danza Espada/Dragón al grupo siempre | 0,89 (0,76-1,07) |
+| `avoid: ['swords-dance','dragon-dance']` | nunca Danza | 0,94 (0,86-1,04) |
+| `itemAvoid: ['choiceband']` | nunca la Cinta Elección | 0,99 (0,93-1,04) |
+
+Hasta la Sentencia (tope 1900 s; 94, 9, 25, 778 × semillas 61-70): Potencia ×2 **1,13 (0,91-1,38)**,
+moldear el mazo 0,93 (0,74-1,21). Juntando todo, Potencia ×2: 1,02 (0,96-1,08) en 240 partidas;
+moldear el mazo: 0,86 (0,77-0,97) en 120. Lo más prometedor para una ronda más larga: Potencia ×2
+en partidas de 30 min con más semillas.
+
 ## move-dps.json
 
 `node sim/calib-moves.js [--n 15] [--secs 30] [--seeds 1] [--jobs 3] [--only id,id]`
@@ -155,3 +199,35 @@ la horda a la distancia que pide su ataque. Mide el ritmo de daño directo por u
 de ataque (sin veneno ni quemadura). Ojo: con la horda pegada, lo que pega alrededor
 (auras, cuerpo a cuerpo de 360°, rastros) sale muy favorecido; en una partida real
 acercarse cuesta vida (por eso `kindMul`).
+
+## pa-f.js — banco del movimiento (17-10-2026)
+
+`pa-f.js` = `pro-a.js` + `cards-v2-frozen.js` (copia congelada de `cards.js` v2 con su
+`move-dps-frozen.json`), para medir cambios del movimiento sin que cambien las cartas.
+Con las opciones por defecto reproduce `best.js` de esa fecha (medianas 31:36 / 9:24 / 18:34 / 23:26).
+
+- `node sim/xpaudit.js --bot pa-f --dex 94,4,68,9 --seeds 1-5 --max 1800`: experiencia soltada /
+  recogida / en el suelo por minuto, imanes, altares y cofres vistos / usados.
+- `node sim/paired.js base.json nuevo.json --min 10,20,30`: comparación emparejada (misma semilla).
+
+Resultado (ronda 4, `sim/out/xp/`): se recoge el 99 % de la experiencia; altares el 67 % de los
+vistos; cofres con candado sólo el 11 %, pero quedarse a abrirlos no sube el nivel y hace más daño.
+Ninguna idea de movimiento (wp2, chestW, wLine, band) movió el nivel o los derribos fuera del ruido.
+
+## Ronda 4: integración (18-10-2026, `sim/out/r4/`)
+
+`best.js` = `pro-a.js` actual + `cards.js` v3 (sin `cards: 'v2'`; vetos de `cards.js`). No depende
+de las copias congeladas (`pro-a-frozen.js`, `cards-v2*.js`, `pa-f.js`, `move-dps-frozen.json`),
+que se quedan para reproducir los experimentos.
+
+Comprobación en semillas nuevas 61-80, `--upgrades max --ban auto --max 1900`, 4 de referencia
+(94, 4, 68, 9) + 4 supervivientes del barrido (130 Gyarados, 135 Jolteon, 855 Polteageist,
+815 Cinderace), 160 partidas por lado: best anterior (`pro-a-frozen` + `cards-v2`) frente al nuevo
+→ **las 160 partidas son idénticas** (tiempo, derribos, nivel). Era lo esperado: las dos rondas
+dejaron sus opciones apagadas. Mediana 16:38, p10 6:25, 53/160 llegan al min 30
+(nivel mediano en el min 30: 70; atkMul mediano ×2,25, ×3,00 en las que llegan al 30).
+
+Tercer brazo, lo más prometedor de la v3 (`--opts '{"statWeights":{"atk":2}}'`, Potencia ×2), en las
+mismas 160: ×1,04 (0,92-1,15), 60 ganadas / 60 perdidas, 55/160 al min 30, mediana 18:00, nivel en
+el min 30 79, atkMul ×2,61. Sin efecto claro (con las 240 de antes, sigue ≈ ×1,02-1,04): no se adopta.
+Resumen: `node sim/out/r4/sum.js A.json B.json` (o `node sim/cardlab.js pair A.json B.json`).

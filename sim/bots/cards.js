@@ -1,11 +1,18 @@
-/* ============ sim/bots/cards.js — política de DECISIONES v2 (no de movimiento) ============
+/* ============ sim/bots/cards.js — política de DECISIONES v3 (no de movimiento) ============
  *
  * Elige cartas de nivel (y cuándo cambiarlas), objetos, vínculos, el 2.º
  * movimiento inicial y el hueco activo. Los bots de movimiento la mezclan:
  *   Object.assign(mover, require('./cards')(opts))
- * La v1 (congelada) está en cards-v1.js; con opts.cards = 'v1' se usa ésa.
+ * Congeladas: cards-v1.js (opts.cards = 'v1'), cards-v2.js (opts.cards = 'v2'), cards-v3.js.
  *
- * Idea de la v2: la partida se decide por el GRUPO FUSIONADO (vínculos). El plan es
+ * v3 (17/18-10-2026, sim/STRATEGY.md y README.md): POR DEFECTO DECIDE IGUAL QUE LA v2.
+ * Se probaron 15 cambios (Potencia ×2, llenar huecos, subir lo suelto para que deje de salir,
+ * topar stats, Coraza fija, Sustituto o Danza Espada en el grupo, sin Cinta Elección...) en
+ * 80-120 partidas emparejadas cada uno y ninguno mejora el tiempo de forma clara; los que
+ * cambian mucho las decisiones lo empeoran. La v3 añade esas opciones (apagadas) para seguir
+ * probando: potAfter, potSnow, drainUp, drainStat, defTarget, hpW, plan, itemAvoid.
+ *
+ * Idea de la v2 (sigue siendo la de la v3): la partida se decide por el GRUPO FUSIONADO (vínculos). El plan es
  *   1. un movimiento principal (el "foco"), subido al máximo y evolucionado cuanto antes
  *      (la stat de su evolución se coge pronto: basta una vez);
  *   2. 2-3 compañeros que valgan la pena DENTRO del grupo (el que más sume al foco),
@@ -25,6 +32,7 @@
  */
 module.exports = (opts = {}) => {
   if (opts.cards === 'v1') return require('./cards-v1')(opts);
+  if (opts.cards === 'v2') return require('./cards-v2')(opts);
   const o = Object.assign({
     wD: 1.0,               // peso del daño (derribos/s)
     wT: 1.0,               // peso del aguante
@@ -49,12 +57,23 @@ module.exports = (opts = {}) => {
     rerollBelow: 0.02,     // ... o si la mejor no llega a esto (y una tanda nueva sí)
     rerollUntil: 80,       // ... hasta este nivel
     itemRank: null,        // lista de objetos de mejor a peor (si no, el modelo)
+    // ---- v3 (experimentos 17-10-2026; ver README) ----
+    potAfter: 0,           // H1: Potencia y Reflejos ×(1+potAfter) cuando el foco está hecho (todo al máximo y evolucionado)
+    potSnow: 0,            // H1: Potencia y Reflejos + potSnow·(fracción de los 30 min que queda) (bola de nieve: más derribos → más niveles)
+    drainUp: 0,            // H2: con los 4 huecos llenos, mejorar un movimiento fuera del plan vale drainUp/(cartas que le faltan) (deja de salir su carta)
+    drainStat: 0,          // H2: una stat con tope (Carrera, Imán, Aprendizaje, Reflejos, Coraza) vale drainStat/(las que faltan) (al topar deja de salir)
+    defTarget: null,       // H6: Coraza vale +1 hasta esta reducción y nada después
+    hpW: null,             // H6: multiplicador de Vigor (atajo de statWeights.hp)
+    itemAvoid: null,       // H6: objetos que no se cogen nunca (p. ej. ['choiceband'])
+    plan: [],              // H5/H7: movimientos que se quieren DENTRO del grupo principal (sin ser el foco):
+                           // se aprenden (+1) y mejoran (+0,3) antes y los vínculos los meten en el grupo del foco
     ban: null,             // vetos (sólo para bans()): si se da, manda
     table: true,           // usar sim/bots/move-dps.json
     log: false
   }, opts);
   const KM = Object.assign({ melee: 0.6, dash: 0.6, aura: 0.6, trail: 0.5, orbit: 0.8, nova: 0.7 }, o.kindMul);
   const prio = id => { const i = o.priority.indexOf(id); return i < 0 ? 0 : o.priority.length - i; };
+  const inPlanList = id => o.plan.includes(id);
   const L = x => Math.log(Math.max(1e-9, x));
   let G = null, curTime = 0;
 
@@ -297,7 +316,7 @@ module.exports = (opts = {}) => {
 
     if (type === 'evo') {
       const m = pl.moves.find(x => x.id === id);
-      const inPlan = m && (F.includes(m) || candW(ctx, id) === 1 || prio(id));
+      const inPlan = m && (F.includes(m) || candW(ctx, id) === 1 || prio(id) || inPlanList(id));
       return inPlan ? 10 : 0.3;
     }
 
@@ -315,12 +334,15 @@ module.exports = (opts = {}) => {
         : S.length === 1 && ctx.room ? c => ctx.beta * candW(ctx, id) * (ctx.bvOf(c) - ctx.bvOf(m)) + o.sideUp * (V([c], P, E) - V(S, P, E))
         : c => o.sideUp * (V(swap(c), P, E) - V(S, P, E));
       let v = ahead(m, fn, pl);
+      if (o.drainUp && slot !== fi && pl.slots.length >= pl.maxMoves && !(S.length === 1 && ctx.room && candW(ctx, id) === 1)) {
+        v += o.drainUp / Math.max(1, m.def.maxLvl - m.lvl);
+      }
       if (slot !== fi) {
         const c = Object.assign({}, m); G.Moves.levelUp(c);
         const g2 = swap(c);
         if (kill(g2, P, E) > o.switchK * kill(F, P, E)) v = Math.max(v, V(g2, P, E) - VF);   // pasaría a ser el foco
       }
-      return v + 0.3 * prio(id);
+      return v + 0.3 * prio(id) + (inPlanList(id) ? 0.3 : 0);
     }
 
     if (type === 'new') {
@@ -340,7 +362,7 @@ module.exports = (opts = {}) => {
         v = Math.max(v, ctx.beta * w * (0.6 * Math.max(0, bv1) + 0.4 * Math.max(0, bvP)) * 0.6);
       }
       if (pl.slots.length + 1 >= pl.maxMoves) v += o.fillBonus;
-      return v + 1.0 * prio(id);
+      return v + 1.0 * prio(id) + (inPlanList(id) ? 1 : 0);
     }
 
     if (type === 'stat') {
@@ -369,7 +391,7 @@ module.exports = (opts = {}) => {
           const e = G.Moves.EVO[m.id];
           if (!e || e[1] !== id || m.evolved || m.kind === 'buff') continue;
           const inF = F.includes(m);
-          const w = inF ? 1 : prio(m.id) ? 1 : candW(ctx, m.id) === 1 && ctx.room ? ctx.beta : 0;
+          const w = inF ? 1 : prio(m.id) || inPlanList(m.id) ? 1 : candW(ctx, m.id) === 1 && ctx.room ? ctx.beta : 0;
           if (!w) continue;
           const c = G.Moves.instance(m.id, m.def.maxLvl), c2 = Object.assign({}, c); G.Moves.evolve(c2);
           let gain;
@@ -381,6 +403,16 @@ module.exports = (opts = {}) => {
           v += w * Math.max(0, gain) * f;
         }
       }
+      if (id === 'atk' || id === 'cd') {
+        if (o.potAfter && focusDone(F)) v *= 1 + o.potAfter;
+        if (o.potSnow) v += o.potSnow * Math.max(0, 1 - time / 1800);
+      }
+      if (o.drainStat) {
+        const S = G.LevelUp.STATS.find(x => x.id === id);
+        if (S && S.max && id !== 'atk') v += o.drainStat / Math.max(1, S.max - taken);
+      }
+      if (id === 'def' && o.defTarget != null) v = P.red < o.defTarget ? Math.max(v, 0) + 1 : -0.5;
+      if (id === 'hp' && o.hpW != null) v *= o.hpW;
       v *= o.statWeights[id] == null ? 1 : o.statWeights[id];
       v += o.statBonus[id] || 0;
       return v;
@@ -388,9 +420,16 @@ module.exports = (opts = {}) => {
     return 0;
   }
 
+  /** ¿El foco está hecho? (todos sus movimientos de daño al máximo y evolucionados si pueden) */
+  function focusDone(F) {
+    if (!F || !F.length) return false;
+    return F.every(m => m.lvl >= m.def.maxLvl && (m.evolved || m.kind === 'buff' || !G.Moves.EVO[m.id]));
+  }
+
   // ---------------- objetos ----------------
   function itemScore(id, pl) {
     if (o.itemRank) { const i = o.itemRank.indexOf(id); return i < 0 ? -99 : -i; }
+    if (o.itemAvoid && o.itemAvoid.includes(id)) return -50;
     const P = snap(pl, curTime), E = senseEnv(pl, curTime);
     const cur = pl.item;
     if (cur === 'choiceband') P.atk /= 1.4;
@@ -468,7 +507,7 @@ module.exports = (opts = {}) => {
   }
 
   const bot = {
-    name: 'cards2',
+    name: 'cards3',
 
     card(cards, api) {
       G = api.G; curTime = api.time;
@@ -508,7 +547,12 @@ module.exports = (opts = {}) => {
         if (mustM && opt.mode === 'pair' && !pick.includes(mustM)) return;
         if (mustM && opt.mode === 'add' && act !== opt.group && !pick.includes(mustM)) return;
         if (pick.every(m => m.kind === 'buff') && opt.mode === 'pair') return;
-        const v = bestSlotValue(after(pick), P, E);
+        let v = bestSlotValue(after(pick), P, E);
+        // plan: el movimiento del plan entra en el grupo del foco (o se empareja con el foco)
+        if (o.plan.length && pick.some(m => inPlanList(m.id))) {
+          const F = pl.slots[focusSlot(pl, P, E)] || [];
+          if (opt.mode === 'add' ? opt.group === F || opt.group.some(m => F.includes(m)) : pick.some(m => F.includes(m))) v += 10;
+        }
         if (v > bv) { bv = v; best = pick; }
       };
       if (opt.mode === 'add') for (const m of loose) tryPick([m]);

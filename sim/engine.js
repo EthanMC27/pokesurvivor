@@ -225,7 +225,8 @@ function runOne(o) {
       if (wantRr && i === 'reroll') i = 0;
       if (!(i >= 0 && i < cards.length)) i = 0;
       cards[i].apply(pl);
-      stats.cards.push({ t: Math.round(time), lv: pl.level, key: cards[i].key });
+      // of: las cartas que había (para medir qué se ofrece; añadido 17-10-2026)
+      stats.cards.push({ t: Math.round(time), lv: pl.level, key: cards[i].key, of: cards.map(c => c.key) });
       return;
     }
   }

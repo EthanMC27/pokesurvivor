@@ -57,6 +57,11 @@
  *   Ronda 3 (apagadas, sin mejora clara): lowHpK/lowBand (vida baja), bandPick 'dmg'
  *   (banda del movimiento que más daño hace en un grupo), escW/escR (salidas de los rincones).
  *   meleeMul (0,3) sí: ver best.js.
+ *   Ronda 4 (17/18-10-2026, experiencia y derribos; sim/out/xp/, cartas congeladas pa-f.js; apagadas,
+ *   sin mejora): wp2 (camino a objetivos tras paredes), chestW/chestCrowd/chests (quedarse a abrir
+ *   cofres con candado: abre ×3 más pero sube el daño recibido ×1,3 y el nivel no sube), wLine (ponerse
+ *   para que la línea del ataque perforante/rayo/cono pille a más), band 0,75 / 1,3. La experiencia
+ *   ya se recoge al 99 % (sim/xpaudit.js): los derribos los marca el daño (las cartas), no el movimiento.
  *   El resto pasa a la política de cartas.
  */
 'use strict';
@@ -76,6 +81,8 @@ function loadCards(opts) {
   };
   // Por defecto la v2 (cards.js); si no carga, la v1 congelada. opts.cards: 'v1' | 'v2'.
   if (opts.cards === 'v1') return tryLoad('cards-v1');
+  // 'v2f': la v2 congelada (cards-v2-frozen.js), para medir cambios del movimiento.
+  if (opts.cards === 'v2f') return tryLoad('cards-v2-frozen');
   return tryLoad('cards') || tryLoad('cards-v1');
 }
 
@@ -160,6 +167,13 @@ module.exports = (opts = {}) => {
     wGoal: 0.08,      // objetivo
     wRift: 0.35,      // grieta
     wXp: 0.05,        // experiencia
+    wp2: false,       // camino a un objetivo tras una pared: el punto visible más cercano al objetivo (ver waypoint)
+    wLine: 0,         // en fila: premio por acabar donde el blanco (el más cercano) tiene detrás a otros en la
+                      //   línea del ataque (proyectiles que perforan, rayos, conos): golpes de más por disparo
+    chests: true,     // ir a por cofres con candado (false = nunca)
+    chestW: 0,        // cofre con candado: premio por quedarse en su radio de apertura (× 1 + lo abierto)
+    chestHp: 0.5,     //   ir a por un cofre sólo con más vida que esto
+    chestCrowd: 0,    //   ... y con como mucho estos enemigos a 240 px de él (0 = sin límite; un jefe cuenta 3)
     wInertia: 0.012,
     margin0: 3, marginT: 12,  // holgura de contacto (px) = margin0 + marginT·t
     lowHpK: 1.2,              // con poca vida el daño previsto pesa hasta 1 + esto (por debajo del 60 %)
@@ -393,7 +407,7 @@ module.exports = (opts = {}) => {
     for (const s of specials) {
       if (s.type === 'altar' && !s.used) consider(s.x, s.y, 170, 'altar', 60, s);
       else if (s.type === 'spring' && s.charge > 0.15 && hpK < 0.6) consider(s.x, s.y - 8, 150 + (1 - hpK) * 700, 'spring', 60, s);
-      else if (s.type === 'bigchest' && hpK > 0.5) consider(s.x, s.y, 60 + pl.xpNext * 0.4, 'chest', 100, s);
+      else if (s.type === 'bigchest' && P.chests && hpK > P.chestHp && !(P.chestCrowd && crowdAt(s.x, s.y, 240) > P.chestCrowd)) consider(s.x, s.y, 60 + pl.xpNext * 0.4, 'chest', 100, s);
     }
     return best;
   }
@@ -412,6 +426,23 @@ module.exports = (opts = {}) => {
     }
     if (lineFree(pl.x, pl.y, x, y)) return null;
     const TS = G.World.TS || 32;
+    if (P.wp2) {
+      // Se sigue el campo de G.Path desde el objetivo hasta ti y se va al punto del camino
+      // MÁS CERCANO AL OBJETIVO que se vea desde donde estás. (El de antes devolvía el
+      // primero a < 1,5 casillas de ti: si ya estabas ahí, el objetivo no tiraba nada y el
+      // bot se quedaba parado a 140 px de un cofre.)
+      const pts = [];
+      for (let i = 0; i < 80; i++) {
+        const d = G.Path.dirFor({ x, y, r: pl.r }, pl);
+        if (!d) break;
+        x += d[0] * TS * 0.7; y += d[1] * TS * 0.7;
+        pts.push({ x, y });
+        if (Math.hypot(x - pl.x, y - pl.y) < TS * 1.5) break;
+      }
+      if (!pts.length) return false;
+      for (const q of pts) if (Math.hypot(q.x - pl.x, q.y - pl.y) > 24 && lineFree(pl.x, pl.y, q.x, q.y)) return q;
+      return pts[pts.length - 1];
+    }
     for (let i = 0; i < 80; i++) {
       const d = G.Path.dirFor({ x, y, r: pl.r }, pl);
       if (!d) return i === 0 ? false : { x, y };
@@ -482,6 +513,13 @@ module.exports = (opts = {}) => {
       if (bm) band = bandFor(bm);
     }
     const meleeK = grp.some(m => m.kind === 'melee') ? 0.75 : 1;
+    // Ataques "en fila" del hueco activo: largo, medio ancho (o semiángulo) y tope de golpes.
+    const lines = [];
+    if (P.wLine) for (const m of grp) {
+      if (m.kind === 'projectile' && (m.pierce | 0) > 0) lines.push({ L: m.speed * m.life, w: m.size + 4, ang: 0, cap: (m.pierce | 0) + 1 });
+      else if (m.kind === 'beam') lines.push({ L: m.radius, w: m.width / 2, ang: 0, cap: 8 });
+      else if (m.kind === 'cone') lines.push({ L: m.speed * m.life, w: 4, ang: Math.tan(Math.min(1.2, (m.arc || 0.9) / 2)), cap: 8 });
+    }
     let reach = 0;
     for (const m of grp) if (m.kind !== 'buff') reach = Math.max(reach, reachOf(m));
 
@@ -558,6 +596,12 @@ module.exports = (opts = {}) => {
       if (goal.tag === 'chest' && Math.hypot(s.x - pl.x, s.y - pl.y) < Math.max(46, s.r + pl.r + 24) - 4) hold = true;
     }
     const rift = G.Rift.rift && !inArena && !judge && !P.noRift ? G.Rift.rift : null;
+    let chestS = null, chestR = 0;
+    if (P.chestW && !rift && goal && goal.tag === 'chest' && goal.ref) {
+      const s = goal.ref;
+      chestR = Math.max(46, s.r + pl.r + 24) - 3;
+      if (Math.hypot(s.x - pl.x, s.y - pl.y) < chestR + spd * T[NT - 1]) chestS = s;
+    }
 
     // Experiencia en el suelo (fuera del imán).
     const xps = [];
@@ -873,6 +917,26 @@ module.exports = (opts = {}) => {
         c += P.wCrowd * crowdK * Math.min(crowd, P.crowdCap) * (0.7 + 0.6 * (1 - hpK)) * (band.open || 1);
         // Muchos sectores ocupados = cerco (ns de 12); sin salida si casi todos.
         c += P.wSect * (ns > 6 ? (ns - 6) * (ns - 6) / 6 : 0) * (0.7 + 0.6 * (1 - hpK));
+        // En fila: cuántos más caerían en la línea del ataque desde el final (al más cercano).
+        if (lines.length && !duel && !judge) {
+          let tg = null, td = Infinity;
+          for (const e of near) { if (e.behavior === 'thief') continue; const d = Math.hypot(e.x - fx, e.y - fy); if (d < td) { td = d; tg = e; } }
+          if (tg && td < 480) {
+            const ux2 = (tg.x - fx) / (td || 1), uy2 = (tg.y - fy) / (td || 1);
+            let sc = 0;
+            for (const ln of lines) {
+              if (td > ln.L) continue;
+              let n = 0;
+              for (const e of near) {
+                const dx = e.x - fx, dy = e.y - fy, al = dx * ux2 + dy * uy2;
+                if (al <= 0 || al > ln.L + e.r) continue;
+                if (Math.abs(dx * uy2 - dy * ux2) < ln.w + e.r + al * ln.ang) n++;
+              }
+              sc += (Math.min(n, ln.cap) - 1) / Math.max(1, ln.cap - 1);
+            }
+            c -= P.wLine * sc / lines.length;
+          }
+        }
         // Gente en la dirección (más allá del horizonte).
         if (!still && !duel) {
           let dens = 0;
@@ -955,6 +1019,13 @@ module.exports = (opts = {}) => {
         const gw = goal.tag === 'spring' ? 1.6 : goal.tag === 'heal' ? 1.2 + (1 - hpK) : goal.tag === 'chest' ? 0.8 : 1;
         c -= P.wGoal * gw * Math.max(-1, Math.min(1, (d0 - d1) / (spd * T[4]))) * (hpK < 0.3 && goal.tag !== 'spring' && goal.tag !== 'heal' ? 0.4 : 1);
       } else if (hold && still) c -= P.wGoal * 1.2;
+      // Cofre con candado: premio por acabar (y pasar) el horizonte dentro del radio de
+      // apertura; vale más cuanto más abierto está (al salir se cierra 1,5 veces más rápido).
+      if (chestS) {
+        let inN = 0;
+        for (let k = 0; k < NT; k++) if (Math.hypot(PX[k] - chestS.x, PY[k] - chestS.y) < chestR) inN++;
+        c -= P.chestW * (1 + chestS.open / 3.5) * inN / NT;
+      }
       // Experiencia.
       if (xps.length && !still) {
         let g = 0;
@@ -1024,6 +1095,7 @@ module.exports = (opts = {}) => {
   const bot = {
     name: 'pro-a',
     stats,
+    get goal() { return goal; },     // (para depurar)
     init(api) {
       G = api.G; prevI = NDIR; goal = null; buffMode = null; known.clear();
       if (cards && cards.init) cards.init(api);

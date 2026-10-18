@@ -12,15 +12,19 @@
  * daño, vida baja (lowHpK/lowBand), salidas de los rincones (escW, +4 % sin significación) y
  * kindMul.cone 0,6. Las opciones siguen en pro-a.js (apagadas).
  *
- * Uso: node sim/run.js --bot best --ban auto ...   (las --opts se pasan a pro-a;
- * 'cards' vale 'v2' salvo que se diga otra cosa).
+ * Ronda 4 (18-10-2026, sim/out/r4/): best = pro-a.js ACTUAL (con las opciones de la ronda 4,
+ * apagadas) + cards.js v3 (por defecto decide como la v2; sus opciones nuevas, apagadas).
+ * Comprobado contra el best anterior (pro-a-frozen + cards-v2) en semillas nuevas: ver README.
+ *
+ * Uso: node sim/run.js --bot best --ban auto ...   (las --opts se pasan a pro-a y a cards.js;
+ * --opts '{"cards":"v2"}' vuelve a la v2 congelada).
  */
 const cards = require('./cards');
 
 module.exports = (opts = {}) => {
-  const bot = require('./pro-a')(Object.assign({ cards: 'v2' }, opts));
-  bot.name = 'best(pro-a+' + (opts.cards || 'v2') + ')';
+  const bot = require('./pro-a')(opts);
+  bot.name = 'best(pro-a+' + (opts.cards || 'v3') + ')';
   return bot;
 };
-// Vetos para --ban auto: los de la política v2.
+// Vetos para --ban auto: los de cards.js (v3 = mismos vetos que la v2).
 module.exports.bans = (dex, G) => cards.bans(dex, G);

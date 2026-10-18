@@ -26,6 +26,20 @@ te sube ahora" pierden**. Las reglas de abajo son, sobre todo, errores que evita
 
 ---
 
+## 0. Huecos, movimientos y vínculos (para no confundirse) [CÓDIGO]
+
+- **Hay 4 huecos, no 4 movimientos.** Un hueco es un movimiento suelto o un **grupo fusionado
+  de hasta 4** (`Player.maxMoves = 4`, `BOND_MAX = 4` en `js/entities/player.js`).
+- Cada **vínculo** mete movimientos sueltos en un grupo y **te libera un hueco**: vuelven a salir
+  movimientos nuevos y puedes aprender más. En teoría caben 4 grupos × 4 = **16 movimientos**
+  (en partidas largas se ven 2-3 grupos de 4).
+- **Sólo crece un grupo a la vez**: mientras haya uno de 2-3, el vínculo tiene que añadirle un
+  movimiento; sólo cuando llega a 4 se empieza otro. Un grupo de 4 cuesta 3 vínculos.
+- **Sólo dispara el hueco activo.** Un segundo o tercer grupo no suma daño salvo que cambies a él.
+- Tope práctico: los movimientos de tipo Normal (todos los tienen) + los de tus tipos − tus 3 vetos.
+- En esta guía, "4 huecos llenos" = los 4 huecos ocupados (por sueltos o por grupos), que es lo
+  que decide qué cartas te salen.
+
 ## 1. Cómo se reparten las cartas (lo que hay que saber) [CÓDIGO]
 
 En cada nivel salen 3 cartas sorteadas por peso:

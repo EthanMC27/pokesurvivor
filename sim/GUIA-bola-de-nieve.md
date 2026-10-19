@@ -17,7 +17,10 @@ en otros. Los números sirven para **comparar** builds entre sí, no como promes
 
 ## 1. Resumen en 30 segundos
 
-1. Coge un Pokémon de **Acero** rápido: **Kartana, Archaludon, Gholdengo o Cobalion**. [MEDIDO]
+1. Coge un Pokémon de **Acero**. Con esta build casi todos funcionan: los más fiables son
+   **Gholdengo, Archaludon, Empoleon, Lucario, Revavroom y Kartana** (~70 % llegan al minuto 30), y
+   los baratos **Pawniard (rareza 2), Togedemaru, Orthworm, Bisharp y Durant (rareza 3)** (~60 %).
+   Ranking completo en `sim/RESULTS-priofast.md`. [MEDIDO, 15-60 partidas cada uno]
 2. Segundo movimiento inicial (Repertorio): **Puño Meteoro**. [MEDIDO]
 3. En el primer minuto, **Danza Espada y Fortaleza** en cuanto salgan. [MEDIDO]
 4. Sube Puño Meteoro al 5 y coge **Potencia** para evolucionarlo hacia el minuto 2. [CÓDIGO + MEDIDO]

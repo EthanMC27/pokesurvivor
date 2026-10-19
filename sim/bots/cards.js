@@ -74,6 +74,10 @@ module.exports = (opts = {}) => {
     plan: [],              // H5/H7: movimientos que se quieren DENTRO del grupo principal (sin ser el foco):
                            // se aprenden (+1) y mejoran (+0,3) antes y los vínculos los meten en el grupo del foco
     ban: null,             // vetos (sólo para bans()): si se da, manda
+    tableLevel: false,     // (19-10-2026) factor de la tabla por nivel (y evolucionado) en vez de uno por ataque:
+                           // la fórmula sólo pone lo que cambia con Reflejos, etc.; a nivel dado, el daño es el medido
+    reserve: false,        // (19-10-2026) reservar huecos: mientras falten movimientos de `priority` (sin vetar) y queden
+                           // tantos huecos libres como esos, no se aprende ningún otro (con los huecos llenos no salen nuevos)
     start: 'base',         // Movimiento inicial (mejora 'start'): id, 'base' (el de serie, como antes del 19-10-2026) o 'auto' (el modelo elige)
     table: true,           // usar sim/bots/move-dps.json
     log: false
@@ -133,7 +137,7 @@ module.exports = (opts = {}) => {
     return m.dmg * atk * HITS[m.kind](m) / cdE;
   }
   let TABLE = null, FSCALE = 1, scaled = false;
-  const FACT = {};
+  const FACT = {}, FACTL = {};
   if (o.table !== false) { try { TABLE = require('./move-dps.json'); } catch (e) { TABLE = null; } }
   const ONE = { atk: 1, cdMul: 1 };      // (sin mon: la tabla se midió por unidad del ataque de ese movimiento)
   function calibrate() {
@@ -152,6 +156,15 @@ module.exports = (opts = {}) => {
         if (f > 0) { s += Math.log(v / f); k++; }
       });
       if (k) { FACT[id] = Math.exp(s / k); all.push(FACT[id]); }
+      // Por nivel: lv[i] / fórmula a ese nivel (índice = nivel - 1; el último, evolucionado).
+      FACTL[id] = TABLE[id].lv.map((v, i) => {
+        const evo = i === TABLE[id].lv.length - 1;
+        if (!(v > 0) || (evo && !G.Moves.EVO[id])) return null;
+        const m = G.Moves.instance(id, evo ? def.maxLvl : i + 1);
+        if (evo) G.Moves.evolve(m);
+        const f = formula(m, ONE);
+        return f > 0 ? v / f : null;
+      });
     }
     all.sort((x, y) => x - y);
     if (all.length) FSCALE = all[all.length >> 1];
@@ -160,7 +173,9 @@ module.exports = (opts = {}) => {
   function direct(m, P) {
     if (m.kind === 'buff') return 0;
     if (TABLE && !scaled && G) calibrate();
-    return formula(m, P) * (FACT[m.id] || FSCALE) * (KM[m.kind] || 1);
+    let fk = FACT[m.id] || FSCALE;
+    if (o.tableLevel && FACTL[m.id]) { const L2 = FACTL[m.id], x = m.evolved ? L2[L2.length - 1] : L2[Math.min(m.lvl, L2.length - 1) - 1]; if (x) fk = x; }
+    return formula(m, P) * fk * (KM[m.kind] || 1);
   }
 
   // ---------------- K: derribos por segundo de un grupo ----------------
@@ -392,6 +407,10 @@ module.exports = (opts = {}) => {
     if (type === 'new') {
       if (o.avoid.includes(id)) return -9;
       if (pl.moves.length >= o.maxMoves && !prio(id)) return -1;
+      if (o.reserve && !prio(id)) {
+        const missing = o.priority.filter(x => !pl.hasMove(x) && !(pl.banned && pl.banned.has(x)) && G.Moves.poolFor(pl.mon).includes(x)).length;
+        if (missing && pl.maxMoves - pl.slots.length <= missing) return -1;
+      }
       const m1 = G.Moves.instance(id, 1), mP = maxed(id);
       let v = 0;
       // ¿Pasaría a ser el foco ya? (al principio, con poco invertido)

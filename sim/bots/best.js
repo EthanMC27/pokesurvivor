@@ -26,5 +26,6 @@ module.exports = (opts = {}) => {
   bot.name = 'best(pro-a+' + (opts.cards || 'v3') + ')';
   return bot;
 };
-// Vetos para --ban auto: los de cards.js (v3 = mismos vetos que la v2).
-module.exports.bans = (dex, G) => cards.bans(dex, G);
+// Vetos para --ban auto: los de cards.js (v3 = mismos vetos que la v2). Desde el 19-10-2026
+// reciben las --opts: nunca se vetan los de `priority` ni el de `start` (Movimiento inicial).
+module.exports.bans = (dex, G, opts) => cards.bans(dex, G, opts || {});

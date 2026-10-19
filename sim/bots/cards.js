@@ -29,6 +29,12 @@
  *   V(grupo) = wD·ln K + wT·ln T
  * La vida de los enemigos y cuántos hay cerca se miran en la partida (api.G.EnemyMgr).
  * Ver README.md para las opciones.
+ *
+ * Versión del juego del 19-10-2026 (sim/FIDELITY.md): cada ataque es físico o especial y
+ * pega con el Ataque o el At. Esp. del Pokémon (G.Stats.fit), los monotipos pegan ×1,2 con
+ * su tipo, las danzas (Danza Espada/Dragón) sólo suben los físicos y Maquinación los
+ * especiales, y los enemigos se defienden con su Defensa o su Def. Esp. (media de los
+ * que hay en el mapa). El modelo usa atkOf(m, P) en vez del ataque a secas.
  */
 module.exports = (opts = {}) => {
   if (opts.cards === 'v1') return require('./cards-v1')(opts);
@@ -68,10 +74,12 @@ module.exports = (opts = {}) => {
     plan: [],              // H5/H7: movimientos que se quieren DENTRO del grupo principal (sin ser el foco):
                            // se aprenden (+1) y mejoran (+0,3) antes y los vínculos los meten en el grupo del foco
     ban: null,             // vetos (sólo para bans()): si se da, manda
+    start: 'base',         // Movimiento inicial (mejora 'start'): id, 'base' (el de serie, como antes del 19-10-2026) o 'auto' (el modelo elige)
     table: true,           // usar sim/bots/move-dps.json
     log: false
   }, opts);
-  const KM = Object.assign({ melee: 0.6, dash: 0.6, aura: 0.6, trail: 0.5, orbit: 0.8, nova: 0.7 }, o.kindMul);
+  // Giro y empujón pegan alrededor, pegados a la horda (como el aura): mismo descuento.
+  const KM = Object.assign({ melee: 0.6, dash: 0.6, aura: 0.6, trail: 0.5, orbit: 0.8, nova: 0.7, spin: 0.6, shove: 0.7 }, o.kindMul);
   const prio = id => { const i = o.priority.indexOf(id); return i < 0 ? 0 : o.priority.length - i; };
   const inPlanList = id => o.plan.includes(id);
   const L = x => Math.log(Math.max(1e-9, x));
@@ -90,11 +98,30 @@ module.exports = (opts = {}) => {
     mine:       m => m.count * 0.7 * (1 + 1.5 * (m.radius / 56) ** 2),
     meteor:     m => m.count * 0.8 * (1 + 1.2 * (m.radius / 46) ** 2),
     cone:       m => 1 + m.count * 0.2 * (1 + 0.6 * geo(m.pierce)) * ((m.life || 0.42) / 0.42),
-    dash:       m => 1 + 1.5 * (m.radius / 110) * ((m.width || 34) / 34)
+    dash:       m => 1 + 1.5 * (m.radius / 110) * ((m.width || 34) / 34),
+    // formas nuevas (19-10-2026): sólo la forma de la curva por nivel; la escala la pone la tabla
+    homing:     m => m.count ** 0.8 * (1 + 0.3 * Math.min(geo(m.pierce), 4)) * Math.sqrt((m.size || 7) / 7),
+    bounce:     m => m.count ** 0.8 * (1 + 0.8 * geo(m.bounce)),
+    charge:     m => 1 + 1.2 * (m.radius / 220) * ((m.width || 40) / 30),
+    spin:       m => Math.max(1, m.count | 0) * (1 + 2 * (m.radius / 60) ** 2),
+    shove:      m => 1 + 2 * (m.radius / 90) ** 2,
+    stun:       m => 1 + 1.5 * (m.radius / 56) ** 2,
+    quake:      m => Math.max(1, m.count | 0) * 0.5 * (1 + 1.2 * (m.radius / 30) ** 2),
+    // remolino: un golpe cada 0,4 s mientras dura, como mucho 2 a la vez (÷cd lo hace formula)
+    vortex:     m => ((m.dur || 2.6) / 0.4) * (1 + 2 * (m.radius / 70) ** 2) * Math.min(1, 2 * m.cd / (m.dur || 2.6))
   };
+  /**
+   * Ataque con el que pega `m` (como Player.atkFor sin danzas): el físico o el especial del
+   * Pokémon (P.mon) y ×1,2 si es monotipo y el ataque es de su tipo. Sin P.mon, P.atk.
+   */
+  function atkOf(m, P) {
+    const mon = P.mon;
+    if (!mon || !G || !G.Stats) return P.atk;
+    return P.atk * G.Stats.fit(mon, m.cat) * (mon.types.length === 1 && m.type === mon.types[0] ? 1.2 : 1);
+  }
   function formula(m, P) {
     if (m.kind === 'buff') return 0;
-    const atk = P.atk;
+    const atk = atkOf(m, P);
     if (m.kind === 'orbit') return m.dmg * atk * m.count * 0.5 * (m.speed / 2.4) * (m.radius / 62) * Math.min(1, 0.3 / Math.max(0.12, m.cd));
     const cdE = Math.max(0.05, m.cd * P.cdMul);
     if (m.kind === 'turret') {
@@ -108,7 +135,7 @@ module.exports = (opts = {}) => {
   let TABLE = null, FSCALE = 1, scaled = false;
   const FACT = {};
   if (o.table !== false) { try { TABLE = require('./move-dps.json'); } catch (e) { TABLE = null; } }
-  const ONE = { atk: 1, cdMul: 1 };
+  const ONE = { atk: 1, cdMul: 1 };      // (sin mon: la tabla se midió por unidad del ataque de ese movimiento)
   function calibrate() {
     scaled = true;
     const all = [];
@@ -141,34 +168,49 @@ module.exports = (opts = {}) => {
    * P = { atk, cdMul, maxHp, red, regen, level, min, crit } (stats del jugador)
    * E = { hp, C } (vida de referencia de los enemigos y cuántos hay a tiro)
    */
+  /**
+   * Danzas del grupo por categoría (19-10-2026): Danza Espada y Danza Dragón ('patk') sólo
+   * suben los físicos y Maquinación ('satk') los especiales. 'atk' (de antes) sube los dos.
+   */
   function atkBuff(g, P) {
-    let k = 1;
-    for (const m of g) if (m.kind === 'buff' && m.stat === 'atk' && m.cd * P.cdMul < m.dur) k += (m.stacks | 0) * m.amount;
+    const k = { physical: 1, special: 1 };
+    for (const m of g) {
+      if (m.kind !== 'buff' || m.cd * P.cdMul >= m.dur) continue;
+      const up = (m.stacks | 0) * m.amount;
+      if (m.stat === 'patk' || m.stat === 'atk') k.physical += up;
+      if (m.stat === 'satk' || m.stat === 'atk') k.special += up;
+    }
     return k;
   }
-  function parts(g, P) {
+  const NOBUFF = { physical: 1, special: 1 };
+  function parts(g, P, E) {
     let dir = 0, pois = 0, burn = 0, slow = 0;
-    const atkK = g.length > 1 ? atkBuff(g, P) : 1;      // suelto, un potenciador no está siempre arriba
+    const atkK = g.length > 1 ? atkBuff(g, P) : NOBUFF;  // suelto, un potenciador no está siempre arriba
+    // Defensa media de los enemigos frente a cada categoría (G.Stats.taken; sin datos, ×1).
+    const defK = cat => (E && E.def && E.def[cat]) || 1;
     for (const m of g) {
       if (m.kind === 'buff') continue;
       const d = direct(m, P);
-      const hits = d / Math.max(1e-6, m.dmg * P.atk);    // golpes (enemigo·golpe) por segundo
+      const hits = d / Math.max(1e-6, m.dmg * atkOf(m, P));   // golpes (enemigo·golpe) por segundo
       if (m.poison) pois += hits * m.poison;
       if (m.burn) burn += hits * m.burn;
       slow = Math.max(slow, m.slow || 0);
+      // Aturdir deja quietos a los que pilla; el empujón los aparta: cuentan como frenar.
+      if (m.kind === 'stun') slow = Math.max(slow, Math.min(0.6, (m.stun || 1) / Math.max(0.3, m.cd * P.cdMul)));
+      if (m.kind === 'shove') slow = Math.max(slow, 0.2);
     }
     const statused = pois > 0 || burn > 0 || slow > 0;
     for (const m of g) {
       if (m.kind === 'buff') continue;
-      let x = direct(m, P);
+      let x = direct(m, P) * (atkK[m.cat] || 1) * defK(m.cat);
       if (m.hex) x *= statused ? 1 + (m.hex - 1) * 0.8 : 1 + (m.hex - 1) * 0.25;
       dir += x;
     }
-    return { dir: dir * atkK * (1 + 0.5 * (P.crit || 0)), pois, burn, slow };
+    return { dir: dir * (1 + 0.5 * (P.crit || 0)), pois, burn, slow };
   }
   function kill(g, P, E) {
     if (!g || !g.length) return 1e-6;
-    const p = parts(g, P);
+    const p = parts(g, P, E);
     const C = E.C;
     // Veneno: cada acumulación quita un 2 %/s de la vida (máx. 8 por enemigo; dura 4 s y se renueva).
     const poisonU = Math.min(8 * C, p.pois * 4.5);
@@ -195,7 +237,7 @@ module.exports = (opts = {}) => {
   // ---------------- lo que se sabe de la partida ----------------
   function snap(pl, time) {
     return {
-      atk: pl.baseAtk * pl.atkMul, cdMul: pl.cdMul, maxHp: pl.maxHp, hp: pl.hp, red: pl.dmgReduce,
+      atk: pl.baseAtk * pl.atkMul, mon: pl.mon, cdMul: pl.cdMul, maxHp: pl.maxHp, hp: pl.hp, red: pl.dmgReduce,
       regen: pl.regenFlat + (pl.item === 'shellbell' ? 3 : 0) - (pl.item === 'lifeorb' ? lifeOrbDrain(pl, pl.activeGroup()) : 0),
       level: pl.level, min: (time || 0) / 60, crit: pl.critChance || 0
     };
@@ -205,18 +247,20 @@ module.exports = (opts = {}) => {
     for (const m of g) if (m.kind !== 'orbit' && m.kind !== 'trail') casts += 1 / Math.max(0.12, m.cd * pl.cdMul);
     return pl.maxHp * 0.01 * casts;
   }
-  let env = { t: -99, hp: 200, C: 10 };
+  let env = { t: -99, hp: 200, C: 10, def: null };
   function senseEnv(pl, time) {
     if (time - env.t < 3 && env.t >= 0) return env;
-    let s = 0, n = 0, near = 0;
+    let s = 0, n = 0, near = 0, dp = 0, ds = 0;
     for (const e of G.EnemyMgr.all()) {
       if (e.dead || e.boss) continue;
       s += e.maxHp; n++;
       if (Math.abs(e.x - pl.x) < 320 && Math.abs(e.y - pl.y) < 320) near++;
+      if (G.Stats) { dp += G.Stats.taken(e.mon, 'physical'); ds += G.Stats.taken(e.mon, 'special'); }
     }
     // Sin enemigos a la vista: una estimación por el tiempo (sólo al principio).
     const hpNow = n ? s / n : 120 + time * 12;
-    env = { t: time, hp: Math.max(60, hpNow * o.hpAhead), C: Math.max(6, Math.min(30, near || 10)) };
+    env = { t: time, hp: Math.max(60, hpNow * o.hpAhead), C: Math.max(6, Math.min(30, near || 10)),
+            def: n && G.Stats ? { physical: dp / n, special: ds / n } : null };
     return env;
   }
 
@@ -479,7 +523,10 @@ module.exports = (opts = {}) => {
     if (pl.slots.length < pl.maxMoves) {
       const buffs = pl.moves.filter(m => m.kind === 'buff').length;
       const ids = G.Moves.poolFor(pl.mon).filter(id => !pl.hasMove(id) && !(pl.banned && pl.banned.has(id)) && !(buffs >= 2 && G.Moves.BY_ID[id].kind === 'buff'));
-      for (const id of ids) add('new:' + id, 10 * Math.min(1, 6 / ids.length));
+      // Los de su lado bueno salen el doble (levelup.js, pickWeighted desde el 18-10-2026).
+      const wOf = id => (G.Stats && G.Stats.fit(pl.mon, G.Moves.BY_ID[id].cat) >= 0.999 ? 2 : 1);
+      const tot = ids.reduce((a, id) => a + wOf(id), 0);
+      for (const id of ids) add('new:' + id, 10 * Math.min(1, 6 * wOf(id) / tot));
     }
     const waiting = {};
     for (const m of pl.moves) { const ev = G.Moves.evoInfo(m, pl.statsTaken); if (ev && !ev.ready) waiting[ev.needs] = 1; }
@@ -578,6 +625,26 @@ module.exports = (opts = {}) => {
       return best;
     },
 
+    /**
+     * Movimiento inicial (mejora 'start', 19-10-2026): o.start (un id), 'base' = el de serie (por
+     * defecto: así el bot juega como antes de la mejora), 'auto' = el 1.º de priority que se pueda
+     * o el que mejor sale en el modelo (como secondMove: que sirva ya y que tenga buen techo).
+     */
+    startMove(choices, api) {
+      G = api.G; curTime = 0;
+      const pl = api.pl;
+      if (o.start === 'base') return G.baseStartOf(pl.mon.dex);
+      if (o.start !== 'auto') return choices.includes(o.start) ? o.start : G.baseStartOf(pl.mon.dex);
+      for (const id of o.priority) if (choices.includes(id)) return id;
+      const P = snap(pl, 0), E = { hp: 150, C: 10 };
+      let best = choices[0], bv = -Infinity;
+      for (const id of choices.filter(id => !o.avoid.includes(id) && !(pl.banned && pl.banned.has(id)))) {
+        const v = 0.5 * L(kill([G.Moves.instance(id, 1)], P, E)) + 0.5 * V([maxed(id)], P, { hp: 2000, C: 15 });
+        if (v > bv) { bv = v; best = id; }
+      }
+      return best;
+    },
+
     /** Hueco activo: el foco (se recalcula cada 0,5 s o si cambian los huecos). */
     active(api) {
       G = api.G; curTime = api.time;
@@ -589,7 +656,7 @@ module.exports = (opts = {}) => {
       return focusCache.i;
     },
 
-    _model: { kill, tough, direct, parts, snap, V, env: () => env, focusSlot: pl => focusSlot(pl, snap(pl, curTime), senseEnv(pl, curTime)) }
+    _model: { kill, tough, direct, parts, snap, V, atkOf, env: () => env, focusSlot: pl => focusSlot(pl, snap(pl, curTime), senseEnv(pl, curTime)) }
   };
   let focusCache = { t: -1, i: 0, n: -1, k: -1 };
 
@@ -616,15 +683,18 @@ module.exports.bans = (mon, G, opts = {}) => {
   const pol = module.exports(Object.assign({}, opts, { cards: undefined }));
   const md = pol._model;
   // Inicializa el modelo con este G (la calibración lo necesita).
-  pol.secondMove([], { G, pl: { slots: [], moves: [], baseAtk: mon.atk, atkMul: 1.4, cdMul: 0.76, maxHp: mon.hp + 80, hp: mon.hp + 80, dmgReduce: 0.16,
+  pol.secondMove([], { G, pl: { mon, slots: [], moves: [], baseAtk: mon.atk, atkMul: 1.4, cdMul: 0.76, maxHp: mon.hp + 80, hp: mon.hp + 80, dmgReduce: 0.16,
     regenFlat: 1, level: 1, critChance: 0.3, item: null, activeGroup: () => [] } });
-  const P = { atk: mon.atk * 1.4 * 1.5, cdMul: 0.7, maxHp: mon.hp + 200, red: 0.4, regen: 3, level: 40, crit: 0.3 };
+  const P = { atk: mon.atk * 1.4 * 1.5, mon, cdMul: 0.7, maxHp: mon.hp + 200, red: 0.4, regen: 3, level: 40, crit: 0.3 };
   const E = { hp: 6000, C: 15 };
-  const start = G.startMoveOf(mon.dex);
+  // Inicial: opts.start (Movimiento inicial) si se puede elegir; si no, el de serie. (Con el
+  // inicial elegido por el modelo, startMove, no se sabe aquí: se usa el de serie.)
+  const start = opts.start && opts.start !== 'base' && G.startChoices(mon.dex).includes(opts.start) ? opts.start : G.baseStartOf(mon.dex);
   const pool = G.Moves.poolFor(mon);
   const prio = new Set(opts.priority || []);
   const mx = id => { const m = G.Moves.instance(id, G.Moves.BY_ID[id].maxLvl); if (G.Moves.EVO[id] && m.kind !== 'buff') G.Moves.evolve(m); return m; };
-  // Grupo de referencia: los 3 mejores movimientos de daño por su techo.
+  // Grupo de referencia: los 3 mejores movimientos de daño por su techo (con su categoría y
+  // el +20 % de monotipo: atkOf con P.mon).
   const dmg = pool.filter(id => G.Moves.BY_ID[id].kind !== 'buff')
     .map(id => ({ id, v: md.V([mx(id)], P, E) })).sort((a, b) => b.v - a.v);
   const worth = id => {

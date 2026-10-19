@@ -31,7 +31,7 @@ if (a.ban === 'auto') {
     try { const m = require(p); if (typeof m.bans === 'function') { bansFn = m.bans; break; } } catch (e) {}
   }
 }
-const banOf = dex => a.ban === 'auto' ? (bansFn ? bansFn(G.DEX_BY[dex], G) : undefined) : a.ban ? String(a.ban).split(',') : undefined;
+const banOf = dex => a.ban === 'auto' ? (bansFn ? bansFn(G.DEX_BY[dex], G, a.opts ? JSON.parse(a.opts) : {}) : undefined) : a.ban ? String(a.ban).split(',') : undefined;
 
 const done = new Set();
 if (fs.existsSync(out)) for (const l of fs.readFileSync(out, 'utf8').split('\n')) {

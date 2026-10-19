@@ -147,12 +147,14 @@ function load(seed = 1) {
     __now: 3600e3,
     localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } },
     sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
-    document: H, navigator: { userAgent: 'node', language: 'es' }, location: { search: '', hostname: 'localhost', href: '' },
+    document: H, navigator: { userAgent: 'node', language: 'es' }, location: { search: '', hostname: 'localhost', href: '', pathname: '/' },
     Image: function () { return H; }, Audio: function () { return H; }, AudioContext: function () { return H; },
     fetch: () => new Promise(() => {}), addEventListener() {}, removeEventListener() {},
     matchMedia: () => ({ matches: false, addEventListener() {} }), innerWidth: 1280, innerHeight: 720, devicePixelRatio: 1,
     ImageData: function (w, h) { return { data: new Uint8ClampedArray(w * h * 4), width: w, height: h }; },
     OffscreenCanvas: function () { return H; }, screen: { width: 1280, height: 720 },
+    // i18n.js (18-10-2026) envuelve fillText/strokeText del prototipo del canvas.
+    CanvasRenderingContext2D: Object.assign(function () {}, { prototype: { fillText() {}, strokeText() {}, measureText: () => ({ width: 0 }) } }),
     URLSearchParams, TextEncoder, crypto: globalThis.crypto,
     Uint8ClampedArray, Uint8Array, Float32Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float64Array, ArrayBuffer, DataView
   };

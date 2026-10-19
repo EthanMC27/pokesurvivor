@@ -7,6 +7,7 @@
  *   - el entorno falso no rompe la lógica (cámara, performance.now, Banda Focus)
  *   - los atajos de velocidad de load.js dan lo mismo que el código tal cual (SIM_NOPATCH)
  *   - inmortal no cae; en la Sentencia salen legendarios y se cuentan los vencidos
+ *   - (19-10-2026) Movimiento inicial, categoría del golpe en hurt, aprender no cambia de hueco
  */
 const { runOne } = require('./engine');
 const { load } = require('./load');
@@ -71,6 +72,28 @@ ok(two, 'Repertorio: empieza con 2 movimientos');
 ok(banOk, `Veto: el 2.º movimiento nunca es uno vetado (${ban.join(', ')}; ${pool.length} posibles)`);
 const r60 = runOne({ dex: 94, seed: 7, maxTime: 30, bot: bot(), dt: 1 / 60 });
 ok(r60.frames >= 30 * 60 - 2, `dt 1/60: ${r60.frames} fotogramas en 30 s`);
+
+console.log('Versión del 19-10-2026: Movimiento inicial, físico/especial, aprender no cambia de hueco');
+{
+  const { G } = load(1);
+  const choices = G.startChoices(94), alt = choices.find(id => id !== G.baseStartOf(94));
+  const rs = runOne({ dex: 94, seed: 1, maxTime: 0.1, bot: bot(), upgrades: { start: 1 }, start: alt });
+  ok(rs.moves[0].split(':')[0] === alt, `Movimiento inicial con la mejora: empieza con ${alt}`);
+  const rn = runOne({ dex: 94, seed: 1, maxTime: 0.1, bot: bot(), start: alt });
+  ok(rn.moves[0].split(':')[0] === G.baseStartOf(94), 'sin la mejora: el de serie (o.start se ignora)');
+  // El envoltorio de hurt (engine.js) tiene que pasar la categoría del golpe (4.º argumento).
+  let dP = 0, dS = 0, act = null;
+  const hb = Object.assign(bot(), { init(api) {
+    const pl = api.pl, h = (cat) => { pl.invuln = 0; const b = pl.hp; pl.hurt(10, null, false, cat); const d = b - pl.hp; pl.hp = b; return d; };
+    dP = h('physical'); dS = h('special');
+    pl.addMove(G.Moves.poolFor(pl.mon).find(id => !pl.hasMove(id)));
+    act = pl.active;
+  } });
+  runOne({ dex: 113, seed: 1, maxTime: 0.1, bot: hb });
+  const want = G.Stats.taken(G.DEX_BY[113], 'physical') / G.Stats.taken(G.DEX_BY[113], 'special');
+  ok(dS > 0 && Math.abs(dP / dS - want) < 0.02, `hurt con categoría: Chansey recibe ×${(dP / dS).toFixed(2)} de un físico que de un especial (código: ×${want.toFixed(2)})`);
+  ok(act === 0, 'aprender un movimiento no lo pone activo');
+}
 
 console.log('Atajos de velocidad (load.js) = código tal cual');
 {

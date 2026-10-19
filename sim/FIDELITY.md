@@ -151,3 +151,69 @@ y su `predict`, ~20 %).
 - `node sim/compare.js a.json b.json ... [--by dex] [--csv]`: tabla comparativa (tiempo
   mediana/media/p10/p90, nivel, derrotados, jefes, vínculos, ≥30 min, vidas antes de la
   Sentencia y legendarios vencidos en ella).
+
+## Tercera revisión: versión del 19-10-2026 (merge de upstream/main, 12 commits desde 5bbc3b2)
+
+### Qué cambió en la lógica del juego [CÓDIGO]
+
+- **Físico y especial** (`js/systems/stats.js`, nuevo). Cada ataque tiene `cat` (`moves.js`: lista
+  `PHYSICAL`; el resto especiales; los potenciadores, ninguna). El jugador pega con
+  `Player.atkFor(m) = atk · fit · danza de su lado · monotipo`, donde `atk` sigue siendo el mayor de
+  Ataque y At. Esp. (`mon.atk`) y `fit = (pa o sa) / atk` (1 con los de su lado bueno, menos con los
+  otros: Gholdengo con Puño Meteoro 0,72). Los enemigos se defienden con su Defensa o su Def. Esp.:
+  `guard(def) = clamp((75/def)^0,35, 0,78, 1,25)` (hasta −22 % con mucha, +25 % con poca). Tú también:
+  cada enemigo pega con su lado fuerte (`Enemy.cat`) y lo para tu defensa de esa categoría
+  (`Player.hurt(amount, type, pure, cat)`: 4.º argumento nuevo; zonas, disparos y contacto lo pasan).
+- **Danzas**: Danza Espada y Danza Dragón suben `patk` (sólo físicos); **Maquinación** (nueva, grupo
+  Normal: la puede aprender cualquiera) sube `satk` (sólo especiales). Mismos números que Danza Espada.
+- **Monotipos**: ×1,2 de daño con los ataques de su tipo (`Player.MONO_K`).
+- **Cartas** (`levelup.js`): los movimientos nuevos de su lado bueno salen el doble (`pickWeighted`,
+  peso 2 frente a 1). Gasta los números aleatorios de otra forma que `pickN`.
+- **Aprender un ataque ya no lo pone activo** (`addMove`): sólo si no tenías ninguno.
+- **Movimiento inicial** (mejora nueva `start`, 1 nivel): eliges con qué ataque empiezas
+  (`G.startChoices`: los de su lista sin potenciadores, y el de serie). Con Repertorio, el 2.º sale
+  al azar de los demás.
+- **38 ataques nuevos** con 8 formas nuevas: `homing` (persiguen), `bounce` (rebotan hasta `bounce`
+  veces a <220 px), `charge` (se cargan 0,75 s y sale un rayo), `spin` (giro: `count` golpes
+  alrededor cada 0,13 s), `quake` (ondas en línea cada 34 px), `vortex` (remolino que atrae y daña
+  cada 0,4 s, 2 a la vez como mucho), `shove` (onda que daña y empuja; no a los jefes), `stun` (zona
+  con aviso de 0,45 s que daña y aturde; a los jefes ×0,35). Aturdido = ni se mueve ni pega por contacto.
+- **Veneno**: con más de 60.000 de vida máxima el % se aplica a una vida "efectiva"
+  `60.000·√(vida/60.000)` (`enemy.js`, `pctHp`). Sólo afecta a los legendarios de la Sentencia (los
+  enemigos y jefes normales no pasan de 60.000): con 6 millones, como si tuviera 600.000.
+- **Sentencia contra la huida** (`judgment.js`): velocidad del jugador con tope suave (lo que pase de
+  130 cuenta un 25 %) mientras dure; los legendarios corren al menos al 80 % de la tuya; desde los 5
+  min de Sentencia Arceus acelera y desde los 7 su toque quita cada vez más (100 % a los 10).
+- **Jefes que ya no se vuelven inmatables**: curas y escudos sobre un jefe limitados por el daño que
+  le haces (`rd`, ~0,4 s y ~1,2 s de tu daño); como mucho 3 curanderos, 3 escuderos y 3 invocadores
+  vivos (`spawner.js`). Un jefe a más de 2.500 px vuelve a salir cerca a los 4 s.
+- Mando y "Apuntar a mano" (Accesibilidad): apagado por defecto (`G.Settings.get('aimManual')`);
+  el simulador no lo usa. Idiomas (`js/core/locales.js`, `js/boot.js`, `i18n.js`): sólo textos.
+
+### Cambios en el simulador
+
+1. **`load.js`**: `i18n.js` envuelve `CanvasRenderingContext2D.prototype` → se da uno vacío;
+   `location.pathname`. Se cargan `locales.js`, `boot.js`, `gamepad.js` y `stats.js` (son de
+   `dev.html`; los dos primeros sólo tocan textos). El atajo de `world.js` **sigue aplicándose**
+   (selftest: con y sin atajos, idéntica).
+2. **`engine.js`**: el envoltorio de `pl.hurt` **perdía el 4.º argumento** (la categoría): sin
+   arreglarlo, el jugador nunca usaría su Defensa ni su Def. Esp. Arreglado y comprobado en selftest
+   (Chansey recibe ×1,41 de un físico que de un especial, como el código).
+   Movimiento inicial: `o.start` sólo vale con la mejora y si está en `G.startChoices` (si no, aviso y
+   el de serie); sin `o.start`, `bot.startMove(choices, api)` si existe (`o.forceStart` para las
+   herramientas). Los vetos se ponen antes de que el bot elija.
+3. **`bots/cards.js`**: el modelo usa `atkOf(m, P)` (categoría y monotipo), las danzas por
+   categoría (`patk`, `satk`), la defensa media de los enemigos del mapa por categoría, y las 8 formas
+   nuevas (curva por nivel en `HITS`; aturdir y empujón cuentan como frenar). Las cartas de
+   movimiento nuevo de su lado bueno pesan el doble al estimar una tanda nueva (cambio de cartas).
+   `startMove`: por defecto `start: 'base'` (el de serie, como antes); `'auto'` = el modelo elige.
+   `bans()` recibe las `--opts` (`run.js`, `sweep.js`, `best.js`): nunca veta los de `priority` ni el
+   inicial elegido. Antes los vetos automáticos no veían `priority`.
+4. **`bots/pro-a.js`**: distancias y alcance de las formas nuevas (`bandFor`, `reachOf`) y `startMove`.
+5. **`calib-moves.js`**: divide por `Player.atkFor(m)` (Ditto es Normal puro: sin esto los ataques
+   Normales salían ×1,2) y neutraliza `G.Stats.taken`; distancias de las formas nuevas; `--out`.
+   `move-dps.json` recalibrado entero (3 semillas); la tabla anterior queda en `move-dps-v1.json`.
+
+Revisado sin cambios: `G.Pad` (gamepad.js) no encuentra mando (`navigator.getGamepads` no existe) y
+`rumble` no hace nada; `handAim` devuelve null (ajuste apagado); `m.since` usa `G.Game.st.time`, que
+el motor ya daba. El aturdimiento y los empujones son código del juego: no necesitan nada del motor.

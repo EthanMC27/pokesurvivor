@@ -5,13 +5,18 @@
  * movimiento a cada nivel (1..máx y evolucionado), por unidad de ataque:
  *   - jugador invulnerable y enemigos inmortales (se mide el ritmo, sin "sobredaño")
  *   - siempre N enemigos alrededor (se rellena con G.Spawner.burst)
- *   - tabla de tipos y clima neutros (×1)
+ *   - tabla de tipos y clima neutros (×1) y, desde el 19-10-2026, también las defensas de
+ *     los enemigos (G.Stats.taken = 1) y el ataque del movimiento (Player.atkFor: físico o
+ *     especial y el +20 % de monotipo; Ditto es Normal puro): la tabla es por unidad del
+ *     ataque con el que pega ESE movimiento. cards.js pone la categoría, el monotipo y la
+ *     defensa media de los enemigos aparte.
  *   - el jugador se mueve rodeando a la horda a la distancia que pide el ataque
  * El veneno y la quemadura NO se cuentan (cards.js los modela aparte: el veneno
  * quita un % de la vida y vale más cuanto más dura la partida).
  *
- * Uso: node sim/calib-moves.js [--n 30] [--secs 40] [--seeds 1-2] [--jobs 3] [--only id,id]
- * Escribe sim/bots/move-dps.json: { id: { kind, lv: [dps nv1, nv2, ..., evolucionado|null] } }
+ * Uso: node sim/calib-moves.js [--n 30] [--secs 40] [--seeds 1-2] [--jobs 3] [--only id,id] [--out f.json]
+ * Escribe sim/bots/move-dps.json (o --out): { id: { kind, lv: [dps nv1, nv2, ..., evolucionado|null] } }
+ * Con --n 1: daño a un solo enemigo (para comparar área frente a uno solo; sim/movecards.js).
  */
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 const path = require('path'), fs = require('fs');
@@ -27,13 +32,14 @@ if (!isMainThread) {
     init({ G, pl }) {
       G.Types.mult = () => 1;
       G.Weather.mult = () => 1;
+      G.Stats.taken = () => 1;
       const proto = G.Enemy.prototype, hurt0 = proto.hurt;
       proto.hurt = function (...a) { hurt0.apply(this, a); if (this.dead && !this.boss) { this.dead = false; this.fade = 0; } this.hp = this.maxHp; };
       pl.hurt = () => {};
       const m = pl.moves[0];
       for (let i = 1; i < lvl; i++) G.Moves.levelUp(m);
       if (evo) G.Moves.evolve(m);
-      atk = pl.baseAtk * pl.atkMul;
+      atk = pl.atkFor(m);           // (sin danzas: Ditto no tiene ninguna activa)
     },
     move({ G, pl, time }) {
       if (G.EnemyMgr.count < n) G.Spawner.burst(Math.min(6, n - G.EnemyMgr.count));
@@ -43,7 +49,10 @@ if (!isMainThread) {
       const m = pl.moves[0];
       const want = { melee: m.radius * 0.6, dash: m.radius * 0.7, beam: m.radius * 0.6, cone: m.speed * m.life * 0.6,
                      boomerang: m.radius * 0.6, chain: 150, meteor: 160, projectile: 170, nova: 90,
-                     aura: m.radius * 0.5, orbit: m.radius * 0.8, trail: 60, mine: 70, turret: 120 }[m.kind] || 120;
+                     aura: m.radius * 0.5, orbit: m.radius * 0.8, trail: 60, mine: 70, turret: 120,
+                     // formas nuevas (19-10-2026)
+                     homing: 170, bounce: 150, charge: m.radius * 0.6, spin: m.radius * 0.6, shove: m.radius * 0.5,
+                     quake: (m.count | 0) * 34 * 0.5, vortex: 150, stun: 150 }[m.kind] || 120;
       let near = null, nd = Infinity, cx = 0, cy = 0, k = 0;
       for (const e of G.EnemyMgr.all()) {
         if (e.dead) continue;
@@ -67,7 +76,7 @@ if (!isMainThread) {
     active: () => 0,
     item: cur => cur
   };
-  runOne({ dex: 132, seed, bot, start: id, maxTime: WARM + secs });
+  runOne({ dex: 132, seed, bot, start: id, forceStart: true, maxTime: WARM + secs });
   parentPort.postMessage({ id, lvl, evo, seed, dps: res ? res.dps : 0 });
   return;
 }
@@ -109,7 +118,7 @@ function range(s) { const out = []; for (const part of String(s).split(',')) { c
       if (++done % 20 === 0) console.log(`${done}/${jobs.length} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
     }
   }));
-  const file = path.join(__dirname, 'bots', 'move-dps.json');
+  const file = a.out ? path.resolve(a.out) : path.join(__dirname, 'bots', 'move-dps.json');
   const prev = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
   const mean = v => v.reduce((x, y) => x + y, 0) / v.length;
   for (const id in out) {

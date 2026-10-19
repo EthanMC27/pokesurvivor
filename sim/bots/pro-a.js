@@ -104,6 +104,17 @@ function bandFor(m) {
     case 'meteor':     return { d: 190, orbit: 0.5 };
     case 'turret':     return { d: 150, orbit: 0.65 };
     case 'projectile': return { d: 215, orbit: 0.5 };
+    // Formas nuevas (19-10-2026, ver combat.js). Giro y empujón pegan alrededor (como el aura);
+    // rayo cargado como el rayo; terremoto: la onda avanza count·34 px en línea; remolino y
+    // aturdir salen sobre un enemigo a menos de 300; persiguen y rebotan, de lejos.
+    case 'spin':       return { d: Math.max(24, m.radius * 0.5), orbit: 0.35, pull: 2, open: 0.6 };
+    case 'shove':      return { d: Math.max(30, m.radius * 0.5), orbit: 0.4, pull: 1.6, open: 0.7 };
+    case 'charge':     return { d: Math.max(90, m.radius * 0.55), orbit: 0.45 };
+    case 'quake':      return { d: Math.max(60, (m.count | 0) * 34 * 0.45), orbit: 0.45 };
+    case 'vortex':     return { d: 180, orbit: 0.55 };
+    case 'stun':       return { d: 180, orbit: 0.5 };
+    case 'homing':     return { d: 210, orbit: 0.5 };
+    case 'bounce':     return { d: 170, orbit: 0.5 };
   }
   return { d: 150, orbit: 0.5 };
 }
@@ -128,6 +139,10 @@ function reachOf(m) {
     case 'cone': return m.speed * m.life + 30;
     case 'projectile': return 520;
     case 'aura': case 'orbit': return (m.radius || 60) + 10;
+    case 'spin': case 'shove': case 'charge': return m.radius + 20;
+    case 'quake': return (m.count | 0) * 34 + m.radius;
+    case 'vortex': case 'stun': return 300;
+    case 'homing': case 'bounce': return 520;
   }
   return 200;
 }
@@ -508,7 +523,7 @@ module.exports = (opts = {}) => {
     // más daño hace (si no, Lengüetazo en el grupo te pega a la horda aunque lo fuerte sea Bola Sombra).
     if (P.bandPick === 'dmg' && grp.length > 1 && cards && cards._model) {
       let bm = null, bv = -1;
-      const PP = { atk: pl.baseAtk * pl.atkMul, cdMul: pl.cdMul };
+      const PP = { atk: pl.baseAtk * pl.atkMul, cdMul: pl.cdMul, mon: pl.mon };
       for (const m of grp) { if (m.kind === 'buff') continue; let v = 0; try { v = cards._model.direct(m, PP); } catch (e) {} if (v > bv) { bv = v; bm = m; } }
       if (bm) band = bandFor(bm);
     }
@@ -629,7 +644,7 @@ module.exports = (opts = {}) => {
     // a menos de 330 (Player.update): quedarse a esa distancia lo tumba antes, y
     // mientras vive no se abren grietas.
     if (!inArena && !judge && P.bossBand) {
-      const ranged = grp.some(m => m.kind === 'projectile' || m.kind === 'beam');
+      const ranged = grp.some(m => m.kind === 'projectile' || m.kind === 'beam' || m.kind === 'homing' || m.kind === 'bounce' || m.kind === 'charge');
       let boss = null, bd = Infinity;
       for (const e of near) if (e.boss && e._p.d < bd) { bd = e._p.d; boss = e; }
       if (boss && ranged) {
@@ -1111,7 +1126,8 @@ module.exports = (opts = {}) => {
       return r;
     },
     bond: (o, api) => (cards.bond ? cards.bond(o, api) : []),
-    secondMove: cards && cards.secondMove ? (pool, api) => cards.secondMove(pool, api) : undefined
+    secondMove: cards && cards.secondMove ? (pool, api) => cards.secondMove(pool, api) : undefined,
+    startMove: cards && cards.startMove ? (choices, api) => cards.startMove(choices, api) : undefined
   };
   return bot;
 };

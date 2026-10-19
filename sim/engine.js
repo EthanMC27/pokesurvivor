@@ -15,6 +15,7 @@
  *                                           vale, se fusiona lo de por defecto.
  *   bot.active?(api) -> índice de hueco     (opcional) cambiar de movimiento activo
  *   bot.secondMove?(pool, api) -> id        (opcional) con Repertorio, el 2.º movimiento inicial
+ *   bot.startMove?(choices, api) -> id      (opcional) con la mejora Movimiento inicial, con cuál empezar
  *
  * `api` = { G, pl, time, sense(), rerollsLeft() } — sense() da lo que ve el jugador
  * (enemigos, disparos, zonas avisadas, objetos del mapa, grieta, evento, clima,
@@ -69,7 +70,7 @@ function setup(G, ctx, state) {
  * @param o.bot       objeto bot (ver arriba)
  * @param o.upgrades  niveles de la tienda de Mejoras, p. ej. { atk: 10, hp: 10 } o 'max'
  * @param o.maxTime   segundos como mucho (por defecto 45 min: la Sentencia empieza en el 30)
- * @param o.start     id del movimiento inicial (por defecto el del Pokémon)
+ * @param o.start     id del movimiento inicial (mejora Movimiento inicial; por defecto el de serie)
  * @param o.item      objeto puesto desde el principio (para pruebas)
  * @param o.ban       ids de movimientos vetados (Mejoras → Veto; como mucho los niveles de 'ban')
  * @param o.bind      { idMovimiento: hueco 0-3 } (Mejoras → Atajos)
@@ -104,7 +105,22 @@ function runOne(o) {
 
   const pl = state.pl = new G.Player(mon, perks, false);
   if (o.bind) for (const id in o.bind) if (o.bind[id] != null) pl.bind[id] = o.bind[id];
-  pl.addMove(o.start && G.Moves.BY_ID[o.start] ? o.start : G.startMoveOf(mon.dex));
+  // Movimiento inicial (mejora 'start', 19-10-2026): con ella se elige cualquiera de
+  // G.startChoices (los suyos sin potenciadores, y el de serie). o.start manda; si no,
+  // bot.startMove(choices, api). Sin la mejora, el de serie (o.start se ignora con aviso).
+  // o.forceStart (herramientas como calib-moves.js): cualquier movimiento, sin la mejora.
+  const startOk = id => !!id && (o.forceStart ? !!G.Moves.BY_ID[id] : (levels.start || 0) >= 1 && G.startChoices(mon.dex).includes(id));
+  let startId = o.start;
+  if (!startId && bot.startMove && (levels.start || 0) >= 1) {
+    // (el bot ve los vetos: pl.banned ya puesto, como si los hubiera elegido a la vez)
+    pl.banned = new Set((o.ban || []).slice(0, perks.bans));
+    startId = bot.startMove(G.startChoices(mon.dex).slice(), { G, pl, time: 0, dt });
+  }
+  if (startId && !startOk(startId)) {
+    if (o.start) console.warn(`[sim] movimiento inicial "${startId}" no válido para ${mon.name} (¿sin la mejora 'start'?): el de serie`);
+    startId = null;
+  }
+  pl.addMove(startId || G.startMoveOf(mon.dex));
   pl.banned = new Set((o.ban || []).slice(0, perks.bans));
 
   const sense = () => {
@@ -194,18 +210,19 @@ function runOne(o) {
   const hurt0 = pl.hurt.bind(pl);
   const CUSHION = 1e12;
   const immortalNow = () => o.immortal && !(o.mortalRifts && G.Rift.inArena) && !(o.mortalJudge && G.Judgment.active);
-  pl.hurt = function (amount, type, pure) {
+  // (19-10-2026) hurt tiene un 4.º argumento: la categoría del golpe (físico/especial, ver G.Stats).
+  pl.hurt = function (amount, type, pure, cat) {
     const before = this.hp;
     if (immortalNow()) {
       if (this.dead) return;
       this.hp = before + CUSHION;
-      hurt0(amount, type, pure);
+      hurt0(amount, type, pure, cat);
       const d = before + CUSHION - this.hp;
       this.hp = before;
       if (d > 0) { stats.hits++; stats.dmgTaken += d; stats.lives += d / this.maxHp; }
       return;
     }
-    hurt0(amount, type, pure);
+    hurt0(amount, type, pure, cat);
     const d = before - this.hp;
     if (d > 0) { stats.hits++; stats.dmgTaken += d; if (o.immortal) stats.lives += d / this.maxHp; }
   };

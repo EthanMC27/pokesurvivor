@@ -124,12 +124,12 @@ function table(rows) {
 }
 
 /** Vetos de la política de cartas (--ban auto). */
-function autoBans(botName, dex) {
+function autoBans(botName, dex, botOpts) {
   const tryMod = p => { try { return require(p); } catch (e) { return null; } };
   for (const m of [tryMod(path.join(BOTS, botName)), tryMod(path.join(BOTS, 'cards'))]) {
     if (!m || m.bans == null) continue;
     let b = m.bans;
-    if (typeof b === 'function') { const { load } = require('./load'); b = b(dex, load(1).G); }
+    if (typeof b === 'function') { const { load } = require('./load'); b = b(dex, load(1).G, botOpts || {}); }
     else if (!Array.isArray(b) && typeof b === 'object') b = b[dex];
     if (Array.isArray(b)) return b.slice();
   }
@@ -146,7 +146,7 @@ if (require.main === module) {
   const bot = a.bot || 'flee';
   const jobs = [];
   for (const dex of dexs) {
-    const ban = a.ban === 'auto' ? autoBans(bot, dex) : a.ban ? String(a.ban).split(',') : undefined;
+    const ban = a.ban === 'auto' ? autoBans(bot, dex, a.opts ? JSON.parse(a.opts) : {}) : a.ban ? String(a.ban).split(',') : undefined;
     if (a.ban === 'auto' && !a.quiet) console.log(`vetos (auto) ${dex}: ${ban && ban.length ? ban.join(', ') : 'ninguno'}`);
     for (const seed of seeds) jobs.push({ dex, seed, bot, upgrades, maxTime: +a.max || 2700, start: a.start, item: a.item,
       botOpts: a.opts ? JSON.parse(a.opts) : {},

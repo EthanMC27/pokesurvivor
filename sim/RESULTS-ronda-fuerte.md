@@ -85,3 +85,38 @@ Con 10 semillas el ruido es grande: diferencias pequeñas entre puestos no signi
 | Bibarel | 52 | 56 | 3300 | 0/10 | 3/10 | aqua-ring+body-slam+harden+water-gun |
 
 *Mediana entre las partidas que llegan al minuto 30.
+
+## Confirmación (30 semillas: 101-130)
+
+| Pokémon | Llegan al min 30 | Mediana | Peor 10 % | Nivel min 15* | Solo semillas nuevas 111-130 |
+|---|---|---|---|---|---|
+| Marshadow | 23/30 | 31:40 | 16:46 | 51.5 | 14/20 |
+| Xurkitree | 20/30 | 31:40 | 11:24 | 56 | 13/20 |
+| Plusle | 18/30 | 31:40 | 10:34 | 49.5 | 10/20 |
+| Luxio | 18/30 | 30:59 | 9:44 | 46 | 12/20 |
+| Cobalion | 18/30 | 30:57 | 5:28 | 99 | 13/20 |
+| Barraskewda | 17/30 | 31:34 | 10:15 | 49 | 11/20 |
+| Sneasler | 17/30 | 30:48 | 8:24 | 51.5 | 10/20 |
+| Voltorb | 16/30 | 31:33 | 10:13 | 44 | 8/20 |
+| Cinderace | 16/30 | 31:07 | 10:04 | 39 | 9/20 |
+| Gholdengo | 16/30 | 30:45 | 6:54 | 96.5 | 12/20 |
+| Keldeo | 16/30 | 30:38 | 10:50 | 54 | 10/20 |
+| Buizel | 15/30 | 30:08 | 9:26 | 39 | 9/20 |
+| Pawmo | 15/30 | 29:26 | 11:15 | 49 | 9/20 |
+| Flaaffy | 15/30 | 29:14 | 6:57 | 50 | 8/20 |
+| Houndstone | 15/30 | 28:17 | 9:13 | 44 | 10/20 |
+| Ceruledge | 15/30 | 27:12 | 8:28 | 45 | 9/20 |
+| Manectric | 14/30 | 28:46 | 8:22 | 51.5 | 8/20 |
+| Seadra | 14/30 | 28:32 | 11:01 | 43.5 | 8/20 |
+| Greninja | 14/30 | 27:21 | 9:20 | 39.5 | 7/20 |
+| Sinistcha | 14/30 | 25:37 | 8:27 | 48 | 11/20 |
+| Stufful | 13/30 | 25:31 | 7:53 | 53 | 7/20 |
+| Mankey | 13/30 | 17:13 | 7:33 | 53 | 6/20 |
+| Genesect | 13/30 | 14:21 | 6:46 | 79 | 9/20 |
+| Drifloon | 12/30 | 26:09 | 10:14 | 37 | 6/20 |
+| Archaludon | 12/30 | 11:15 | 7:07 | 103 | 9/20 |
+| Kartana | 12/30 | 10:08 | 7:04 | 105.5 | 7/20 |
+| Horsea | 11/30 | 15:06 | 6:41 | 44 | 5/20 |
+| Magnezone | 5/30 | 9:30 | 5:39 | 101.5 | 5/20 |
+
+*Mediana entre las partidas vivas en el minuto 15.

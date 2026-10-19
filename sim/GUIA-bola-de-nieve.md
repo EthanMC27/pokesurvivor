@@ -121,9 +121,9 @@ Lo que se sostiene [MEDIDO]:
 - **Magnezone no era 0 de 10**: fue mala suerte de la ronda fuerte. Aun así es el más lento.
 - Archaludon no estaba en la confirmación. Su dato de 20 semillas sale de la sección 4.
 
-### 3.3 Más Pokémon de Acero (barrido parcial) [MEDIDO, 10 partidas cada uno]
+### 3.3 Más Pokémon de Acero (barrido completo) [MEDIDO, 10 partidas cada uno]
 
-Barrido `sim/out/steel1.jsonl`: 44 de 61 Pokémon de Acero hechos (433 partidas), semillas 201-210,
+Barrido `sim/out/steel1.jsonl`: los 61 Pokémon de Acero (610 partidas), semillas 201-210,
 **bot normal** (sin la build afinada). Con 10 semillas el ruido es grande. Los que mejor salen:
 
 | Pokémon | rareza | legendario | llegan al min 30 | mediana | nivel min 15 | nivel min 30 | derrotados (mediana) |
@@ -144,9 +144,12 @@ Barrido `sim/out/steel1.jsonl`: 44 de 61 Pokémon de Acero hechos (433 partidas)
 - Hay Pokémon de **muchísimo nivel pero que mueren pronto** con el bot normal: Klink (rareza 1)
   y Ferroseed (rareza 1) van por el nivel 115 en el minuto 15, pero su mediana es de unos 7 minutos.
   La build de la sección 4 podría ayudarles, pero **no se ha probado**. [CONJETURA]
-- En el barrido, 410 de las 433 partidas evolucionaron Puño Meteoro en el grupo principal hacia el
-  minuto 1:30. Las 21 que no lo evolucionaron murieron en una mediana de 3:14. [MEDIDO]
-- Hacen falta 17 Pokémon más para terminar el barrido. Esta tabla puede cambiar.
+- En el barrido, 583 de las 610 partidas evolucionaron Puño Meteoro en el grupo principal hacia el
+  minuto 1:30. Las 25 que no lo evolucionaron murieron en una mediana de 3:04. [MEDIDO]
+- **Con Puño Meteoro evolucionado, casi cualquier Pokémon de Acero hace bola de nieve**: incluso
+  los de rareza 1-2 (Klink, Ferroseed, Meltan, Varoom, Klefki) van por el nivel 110-116 en el
+  minuto 15. Lo que separa a los buenos es **sobrevivir** (velocidad y vida), no el daño. [MEDIDO]
+- Tabla completa (los 61): `sim/out/steel1-summary.md` (`node sim/steelreport.js --all`).
 
 ### 3.4 No recomendados para bola de nieve
 
@@ -341,8 +344,8 @@ Ronda fuerte, bot normal, 10 partidas cada uno. [MEDIDO, ruido grande]
 | qué | archivo |
 |---|---|
 | Ronda fuerte (130 Pokémon × 10, semillas 101-110) | `sim/out/strong1.jsonl`, `sim/RESULTS-ronda-fuerte.md` |
-| Confirmación (27 de 28 Pokémon × 20, semillas 111-130, **parcial**) | `sim/out/confirm1.jsonl` |
-| Barrido de Acero (44 de 61 × 10, semillas 201-210, **parcial**) | `sim/out/steel1.jsonl`, `node sim/steelreport.js` |
+| Confirmación (28 Pokémon × 20, semillas 111-130) | `sim/out/confirm1.jsonl` |
+| Barrido de Acero (61 × 10, semillas 201-210) | `sim/out/steel1.jsonl`, `node sim/steelreport.js` |
 | Pruebas de build (semillas 301-320) | `sim/out/snow/*.jsonl`, `node sim/snowstats.js base.jsonl priofast.jsonl` |
 | Orden de cartas por Pokémon | `node sim/cardorder.js sim/out/snow/priofast.jsonl sim/out/snow/priofast2.jsonl --dex 798` |
 | De qué muere cada partida | `node sim/deathcause.js` |

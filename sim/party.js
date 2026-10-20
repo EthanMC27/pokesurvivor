@@ -21,7 +21,8 @@
  *
  * runParty({ members: [{ dex, bot, start?, ban?, item? }, ...], seed, upgrades, maxTime, dt, leash })
  *   bot: objeto bot (la misma API que engine.js; api.mates = los demás jugadores).
- *   leash: distancia a partir de la que un bot se acerca a su compañero (por defecto 320; 0 = nada).
+ *   leash: distancia a partir de la que un bot se acerca a su compañero (por defecto 0 = nada: con 320 caían mucho más).
+ *   reviveRun: false = el vivo no va a por el caído. why: apunta de qué cae cada uno (últimos 15 s).
  * Con un solo miembro da la MISMA partida que engine.runOne (sin el cambio de cámara): node sim/party.js --check
  */
 const { load, hole } = require(process.env.SIM_LOADER ? './' + process.env.SIM_LOADER : './load');   // (SIM_LOADER: pruebas)
@@ -137,12 +138,28 @@ function runParty(o) {
   const stats = pls.map(() => ({ cards: [], items: [], bonds: 0, hits: 0, dmgTaken: 0, downs: 0, revives: 0 }));
   for (let k = 0; k < N; k++) {
     const pl = pls[k], hurt0 = pl.hurt.bind(pl), S = stats[k];
+    S.log = [];
     pl.hurt = function (amount, type, pure, cat) {
       const before = this.hp, was = this.dead;
       hurt0(amount, type, pure, cat);
       const d = before - this.hp;
-      if (d > 0) { S.hits++; S.dmgTaken += d; }
-      if (!was && this.dead) S.downs++;
+      if (d > 0) {
+        S.hits++; S.dmgTaken += d;
+        if (o.why) {     // de dónde viene el golpe (fichero:línea del juego), para ver de qué se cae
+          const st = (new Error().stack || '').split('\n').slice(2).find(l => /js[\\/](systems|entities)/.test(l)) || '';
+          const m = st.match(/([\w-]+\.js):(\d+)/);
+          S.log.push({ t: state.time, d, src: m ? m[1] + ':' + m[2] : '?', near: G.EnemyMgr.queryCircle(this.x, this.y, 120).filter(e => !e.dead).length });
+        }
+      }
+      if (!was && this.dead) {
+        S.downs++;
+        if (o.why) {
+          const by = {};
+          for (const h of S.log) if (h.t > state.time - 15) { const k = h.src + (h.near >= 10 ? ' 10+' : h.near >= 4 ? ' 4-9' : ' 1-3'); by[k] = (by[k] || 0) + Math.round(h.d); }
+          (S.why = S.why || []).push({ t: Math.round(state.time), lv: this.level, by, mate: pls.filter(q => q !== this).map(q => ({ dead: q.dead, d: Math.round(Math.hypot(q.x - this.x, q.y - this.y)) })) });
+          S.log = [];
+        }
+      }
     };
   }
   for (let k = 0; k < N; k++) if (M[k].bot.init) M[k].bot.init(apis[k]);
@@ -214,7 +231,7 @@ function runParty(o) {
 
   // El bot de cada uno, con correa: si el compañero se aleja más de `leash`, tira hacia él; si está
   // caído y cerca, va a levantarlo (en el juego el que está vivo suele ir a por el caído).
-  const leash = o.leash == null ? 320 : o.leash;
+  const leash = o.leash == null ? 0 : o.leash;     // (20-10-2026: con 320 los bots se metían en la horda; ver FIDELITY)
   function steer(k, v) {
     if (N < 2 || !leash) return v;
     const pl = pls[k];
@@ -222,7 +239,7 @@ function runParty(o) {
     for (const p of pls) { if (p === pl) continue; const d = Math.hypot(p.x - pl.x, p.y - pl.y); if (d < nd) { nd = d; near = p; } }
     if (!near) return v;
     const [ux, uy] = G.U.norm(near.x - pl.x, near.y - pl.y);
-    if (near.dead && nd < 600 && pl.hp > pl.maxHp * 0.35) return nd < 30 ? [0, 0] : [ux, uy];
+    if (o.reviveRun !== false && near.dead && nd < 600 && pl.hp > pl.maxHp * 0.35) return nd < 30 ? [0, 0] : [ux, uy];
     if (nd > leash) { const w = Math.min(1, (nd - leash) / 200); return [v[0] * (1 - w) + ux * w, v[1] * (1 - w) + uy * w]; }
     return v;
   }
@@ -299,7 +316,7 @@ function runParty(o) {
       dex: pl.mon.dex, name: pl.mon.name, dead: pl.dead, dmg: Math.round(pl.dmgDealt), item: pl.item,
       moves: pl.slots.map(g => g.map(m => m.id + ':' + m.lvl + (m.evolved ? '*' : '')).join('+')),
       atkMul: +pl.atkMul.toFixed(2), reduce: +pl.reduction.toFixed(2), hits: stats[k].hits, dmgTaken: Math.round(stats[k].dmgTaken),
-      downs: stats[k].downs, revives: stats[k].revives, bonds: stats[k].bonds, cards: stats[k].cards, items: stats[k].items
+      downs: stats[k].downs, revives: stats[k].revives, why: stats[k].why, bonds: stats[k].bonds, cards: stats[k].cards, items: stats[k].items
     }))
   };
 }

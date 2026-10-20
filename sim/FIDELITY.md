@@ -230,3 +230,18 @@ el motor ya daba. El aturdimiento y los empujones son código del juego: no nece
   rebotan, ×5 evolucionados). Infortunio y remolinos de un invitado ya funcionan en cooperativo (no afecta
   al solitario). Tope de 50 niveles de golpe en `gainXp` (sin efecto normal).
 - `load.js`: `TextDecoder` (net/codec.js) y `top` (noframe.js). Selftest: todo bien.
+
+## Cooperativo (sim/party.js, 20-10-2026)
+
+- `sim/party.js` repite el bucle de `engine.js` con 2-4 jugadores, cada uno con su bot (ver su cabecera:
+  experiencia del equipo con `xpFactor`, nivel común, cartas para cada uno, revivir, grieta para todos,
+  cámara por jugador). G.Coop sigue inactivo: todos los jugadores son "del anfitrión" (sin copias ni
+  fantasmas), que desde upstream 41c40a8 es lo que hace el juego también para los invitados (Infortunio y
+  remolinos). Atajos de `load.js` para el grupo (`coop-owner`, `coop-hazards`, `coop-touch`), idénticos en
+  solitario: selftest (con y sin atajos) y una partida de Lucario con el bot bueno, 600 s, idéntica.
+- **Comprobado**: una party de 1 da la misma partida que `engine.runOne` (`node sim/party.js --check`).
+- **La correa**: con los bots atados a 320 px del compañero, las parejas caían en el minuto 7-8 (1/12 al
+  minuto 20); sin correa, 9/12, como en solitario (8/12). Por defecto, sin correa: cada bot juega a lo suyo
+  y casi nunca levanta al compañero caído. Es lo mínimo de un grupo sin coordinarse.
+- Diferencias que quedan: el clima y la cura del Pokémon perdido sólo para el anfitrión; altares
+  compartidos; una sola recarga del toque de Arceus.

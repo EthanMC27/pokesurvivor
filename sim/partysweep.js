@@ -3,7 +3,7 @@
  * Uso: node sim/partysweep.js --party sim/out/v5/pairs.json --seeds 1201-1220 [--max 1900] [--jobs 14]
  *        --out sim/out/v5/party.jsonl
  *
- * pairs.json: [{ "name": "Cobalion+Polteageist", "members": [{ "dex": 638, "opts": {...} }, { "dex": 855, "opts": {...} }] }, ...]
+ * pairs.json: [{ "name": "Cobalion+Polteageist", "popts": { leash, reviveRun, why } (opcional), "members": [{ "dex": 638, "opts": {...} }, { "dex": 855, "opts": {...} }] }, ...]
  * Cada miembro juega con --bot best y sus opts; vetos automáticos con esas opts (cards.bans).
  * Una línea JSON por partida (con "party": nombre), reanudable con el mismo --out.
  */
@@ -18,7 +18,7 @@ if (!isMainThread) {
   parentPort.on('message', job => {
     try {
       const members = job.members.map(m => ({ dex: m.dex, bot: best(m.opts || {}), ban: m.ban || best.bans(m.dex, G, m.opts || {}), start: m.start }));
-      const r = runParty({ members, seed: job.seed, upgrades: 'max', maxTime: job.max });
+      const r = runParty(Object.assign({ members, seed: job.seed, upgrades: 'max', maxTime: job.max }, job.popts || {}));
       r.party = job.name;
       parentPort.postMessage(r);
     } catch (e) {
@@ -42,7 +42,7 @@ if (fs.existsSync(out)) for (const l of fs.readFileSync(out, 'utf8').split('\n')
   try { const r = JSON.parse(l); if (!r.error) done.add(r.party + ':' + r.seed); } catch (e) {}
 }
 const jobs = [];
-for (const p of parties) for (const seed of range(a.seeds || '1-2')) if (!done.has(p.name + ':' + seed)) jobs.push({ name: p.name, members: p.members, seed, max: +a.max || 1900 });
+for (const p of parties) for (const seed of range(a.seeds || '1-2')) if (!done.has(p.name + ':' + seed)) jobs.push({ name: p.name, members: p.members, seed, max: +a.max || 1900, popts: p.popts });
 console.log(`${parties.length} grupos: ${jobs.length} partidas por hacer (${done.size} ya hechas)`);
 const nW = Math.min(+a.jobs || 3, jobs.length);
 let next = 0, n = 0;

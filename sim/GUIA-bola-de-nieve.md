@@ -28,8 +28,9 @@ El bot no juega como una persona: los números sirven para **comparar** builds, 
    [MEDIDO, 40 partidas cada uno]
 4. Nivel típico: ~95-100 en el minuto 15 y ~140-160 en el 30, con 7.000-12.000 derrotados. El tope de
    40 Potencias llega poco: en 1 de cada 20 partidas. [MEDIDO]
-5. Movimiento inicial: **el de serie**, y Puño Meteoro de segundo con Repertorio. Sólo con **Empoleon y
-   Togedemaru** conviene empezar directamente con Puño Meteoro. [MEDIDO]
+5. **Movimiento inicial: Puño Meteoro**, con todos. Repertorio te da el segundo ataque **al azar**
+   (`startRun`: `G.U.pick`) [CÓDIGO]: sin la mejora de Movimiento inicial no hay forma segura de empezar con él.
+   (Las pruebas anteriores dejaban al bot elegir el de Repertorio; ver §4 y `FIDELITY.md`, cuarta revisión.)
 6. Ya **no** hacen bola de nieve: Lucha (Golpe Kárate + Esfera Aural, ni Patada Giro), Dragón (Garra
    Dragón) ni Roca (Avalancha, que sube de nivel pero muere pronto). Agua y Fantasma con Maquinación
    aguantan muchísimo pero suben poco. [MEDIDO]
@@ -150,15 +151,14 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
 ### 5.1 Caros
 
 #### Cobalion (638) — el más fiable · rareza 5, legendario
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial:** el de serie (Garra Metal);
-  Puño Meteoro con Repertorio.
+- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** Puño Meteoro + Danza Espada + Fortaleza + **Garra Metal** (22 de 32) o Placaje (8).
 - **Hitos:** Danza Espada y Fortaleza en el 0:40; Puño Meteoro evoluciona en el 2:06; Danza al 5 en el
   3:24, Fortaleza al 5 en el 4:36; Potencia n.º 10 en el 13, n.º 20 en el 24.
 - 31 de 40 llegan al minuto 30; nunca llegó al tope de Potencia (sube algo menos que los demás).
 
 #### Archaludon (1018) — el mejor no legendario · rareza 5
-- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial:** el de serie (Garra Metal).
+- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Garra Metal** (13 de 30) o **Garra Dragón** (10).
 - **Hitos:** Fortaleza 0:30, Danza Espada 0:40, evolución 2:06, Danza al 5 en el 3:36, Fortaleza al 5 en
   el 4:30, Potencia 10 en el 11:50 y 20 en el 20:40.
@@ -166,7 +166,7 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
   **Ojo:** con Movimiento inicial = Puño Meteoro le fue peor (9/20 frente a 16/20 con las mismas semillas). [MEDIDO, 20 parejas]
 
 #### Kartana (798) — el que más mata · rareza 4
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial:** el de serie (Látigo Cepa).
+- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Látigo Cepa** (12 de 27) o Placaje (10).
 - **Hitos:** Fortaleza 0:30, Danza Espada 0:40, evolución 2:06, las dos al 5 hacia el 4:00, Potencia 10
   en el 11:30, 20 en el 23:50.
@@ -174,41 +174,40 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
   Def. Esp. muy baja (31): los enemigos especiales le pegan un 25 % más. [CÓDIGO]
 
 #### Dialga (483) · rareza 5, legendario
-- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial:** el de serie (Garra Metal).
+- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Garra Metal** (15 de 27).
 - **Hitos:** Danza Espada 0:24, Fortaleza 0:36, evolución 2:18, Potencia 10 en el 11:20, 20 en el 21:30,
   30 en el 27 (11 de 27).
 - Antes era el de más nivel pero moría pronto (7/20); ahora 27 de 40 llegan al 30.
 
 #### Empoleon (395) — con Movimiento inicial · rareza 4
-- **Vetos:** Agilidad, Sustituto, Disparo Espejo. **Movimiento inicial: Puño Meteoro** (Repertorio da
-  otro al azar).
+- **Vetos:** Agilidad, Sustituto, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Torbellino** (9 de 26), Placaje o Garra Metal.
 - **Hitos:** Danza Espada 0:30, Fortaleza 0:36, evolución 1:54, Potencia 10 en el 13, 20 en el 21:40.
 - Con el inicial de serie (Pistola Agua) le fue mal: 6/20. Con Puño Meteoro de inicial, 26/40.
   [MEDIDO, 20 parejas: ×1,64]
 
 #### Gholdengo (1000) · rareza 4
-- **Vetos:** Agilidad, Sustituto, Disparo Espejo. **Movimiento inicial:** el de serie (Garra Metal).
+- **Vetos:** Agilidad, Sustituto, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Garra Metal** (13 de 25) o Lengüetazo (6).
 - **Hitos:** Danza Espada 0:24, Fortaleza 0:30, evolución 2:06, Potencia 10 en el 13.
 - Es el que más pierde con el cambio: Puño Meteoro le pega un 28 % menos (Ataque 1,03 frente a At. Esp.
   1,43). Sigue siendo fiable (60 %) pero mata menos que los demás (6.796). [CÓDIGO + MEDIDO]
 
 #### Klinklang (601) — Acero puro · rareza 4
-- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial:** el de serie (Garra Metal).
+- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Placaje** (13 de 23) o Garra Metal (10).
 - **Hitos:** Danza Espada 0:30, Fortaleza 0:36, evolución 1:54, Potencia 10 en el 13, 20 en el 21.
 - +20 % de daño con Puño Meteoro por ser monotipo. [CÓDIGO]
 
 #### Lucario (448) · rareza 4
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial:** el de serie (Golpe Kárate).
+- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Golpe Kárate** (14 de 22).
 - **Hitos:** Danza Espada y Fortaleza hacia el 0:30, evolución 2:36, Potencia 10 en el 11:30, 20 en el 22,
   30 en el 27 (10 de 22).
 
 #### Revavroom (966) · rareza 4
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial:** el de serie (Garra Metal).
+- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Garra Metal** (15 de 23).
 - **Hitos:** Fortaleza 0:18, Danza Espada 0:30, evolución 2:12, Potencia 10 en el 11, 20 en el 23.
 - Con Movimiento inicial = Puño Meteoro, peor (8/20 frente a 11/20). [MEDIDO, 20 parejas, ruido]
@@ -216,7 +215,7 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
 ### 5.2 Baratos (rareza 3)
 
 #### Durant (632) — el mejor barato
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial:** el de serie (Picadura).
+- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Picadura** (9 de 22) o Garra Metal (7).
 - **Hitos:** Danza Espada 0:42, Fortaleza 1:00, evolución 2:18, Danza al 5 en el 4:30, Fortaleza al 5 en
   el 5, Potencia 10 en el 12, 20 en el 22.
@@ -240,13 +239,28 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
 
 | minuto | qué coger |
 |---|---|
-| **inicio** | Movimiento inicial: el de serie (Empoleon y Togedemaru: Puño Meteoro). Repertorio: **Puño Meteoro**. |
+| **inicio** | **Movimiento inicial: Puño Meteoro.** Repertorio da otro al azar (si es el 4.º miembro de la ficha, mejor). |
 | **0:00-1:00** | **Danza Espada y Fortaleza** en cuanto salgan (hacia el 0:30-0:40). **Ningún otro ataque nuevo** mientras falten. El resto: mejoras de Puño Meteoro. |
-| **1:00-2:30** | Puño Meteoro al 5 (hacia el 1:30) y **Potencia** en cuanto salga (la pide su evolución). Evoluciona hacia el 2:00. **Primer vínculo: Puño Meteoro + Danza Espada + Fortaleza.** |
+| **1:00-2:30** | Puño Meteoro al 5 (hacia el 1:30) y **Potencia** en cuanto salga (la pide su evolución). Evoluciona hacia el 2:00. **Vínculos: 1.º Puño Meteoro + Fortaleza (o Danza Espada), 2.º la otra, 3.º el 4.º miembro** (ver §6.1). |
 | **2:30-5:00** | Danza Espada al 5 (3:00-4:30) y Fortaleza al 5 (4:00-5:00). El 4.º ataque (ver ficha) y el 4.º miembro del grupo. |
 | **2:00-7:00** | **Pañuelo Elección** en cuanto salga. |
 | **5:00-12:00** | El muro: Vigor, Carrera, Reflejos y Síntesis repartidos, Potencia cuando salga (n.º 10 hacia el min 11-13). Muévete en círculos amplios. |
 | **12:00-30:00** | Sobre todo Potencia (n.º 20 hacia el 21-24), Vigor y Síntesis. El tope de 40 llega en ~5 % de las partidas. |
+
+### 6.1 Vínculos y vetos
+
+- **Cómo van los vínculos** [CÓDIGO, `Player.bondOptions` / `fuse`]: el 1.º une **dos** ataques sueltos en un
+  grupo nuevo; cada vínculo siguiente **añade uno** a ese grupo (hasta 4), y mientras no esté lleno no se
+  empieza otro. Al fusionar, el grupo pasa a ser el activo (salvo con Cinta Elección).
+- **Orden**: 1.º Puño Meteoro + Fortaleza, 2.º Danza Espada, 3.º el 4.º miembro de la ficha. El bot fusionó
+  primero Fortaleza en 2 de cada 3 partidas buenas y Danza Espada en la otra [MEDIDO, 312 partidas]; **no se
+  ha comparado cuál es mejor**. Fortaleza primero por el muro del minuto 6-12 [CONJETURA]. Un potenciador
+  suelto en su hueco no hace nada mientras no esté activo.
+- **Vetos: da igual cuáles 3** (siempre que no sean los de la receta). Vetar Maquinación y Agilidad no
+  ayuda a que salgan Danza Espada y Fortaleza más que vetar 3 ataques (11-14 % por tanda en los dos casos,
+  [MEDIDO, 20.000 sorteos]), y en partidas tampoco: vetar Giro Bola, Giro Rápido e Hiperrayo en vez de los
+  automáticos dio ×0,92 (IC95 ×0,80-×1,06) [MEDIDO, 160 parejas]. Con 2 potenciadores aprendidos el juego
+  ya no ofrece más [CÓDIGO], así que vetar potenciadores no sirve después del minuto 1.
 
 ---
 

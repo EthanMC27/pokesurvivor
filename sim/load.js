@@ -98,6 +98,30 @@ const PATCHES = [
       to: '    if (!arena && !__tc) __terr.set(k, c.terr.slice());\n    if (data.size > MAX_DATA) data.delete(data.keys().next().value);', count: 1 }
   ] }
 ];
+/*
+ * Para el cooperativo (sim/party.js, 20-10-2026). En solitario dan EXACTAMENTE lo mismo (cada disparo es
+ * del único jugador y everyone() = [jugador]); en grupo hacen lo que cada ordenador hace con su Pokémon:
+ *   combat.js   los golpes de un disparo se apuntan a su dueño (crítico, daño hecho, Concha Sonora, drenaje),
+ *               no a quien se le pasa a resolve();
+ *   hazards.js  una zona avisada daña a todos los que pilla (no sólo a G.Game.player);
+ *   judgment.js el toque de Arceus se comprueba con cada jugador.
+ */
+PATCHES.push(
+  { file: /systems\/combat\.js$/, name: 'coop-owner', edits: [
+    { from: '        const crit = isCrit(pl);\n        const k = (p.mtype ? typeK(p.mtype, e) : 1)',
+      to: '        const crit = isCrit(p.owner || pl);\n        const k = (p.mtype ? typeK(p.mtype, e) : 1)', count: 1 },
+    { from: '        pl.dmgDealt += p.dmg * k;', to: '        (p.owner || pl).dmgDealt += p.dmg * k;', count: 1 },
+    { from: '        pl.onDealt(p.dmg * k);', to: '        (p.owner || pl).onDealt(p.dmg * k);', count: 1 },
+    { from: '        if (p.drain) pl.heal(p.drain);', to: '        if (p.drain) (p.owner || pl).heal(p.drain);', count: 1 }
+  ] },
+  { file: /systems\/hazards\.js$/, name: 'coop-hazards', edits: [
+    { from: '        if (pl && !pl.dead && inside(h, pl.x, pl.y, pl.r)) {',
+      to: '        for (const pl of (G.Game.everyone ? G.Game.everyone() : [G.Game.player])) if (pl && !pl.dead && inside(h, pl.x, pl.y, pl.r)) {', count: 1 }
+  ] },
+  { file: /systems\/judgment\.js$/, name: 'coop-touch', edits: [
+    { from: '    touch(pl);\n    ember(dt);', to: '    for (const p of (G.Game.everyone ? G.Game.everyone() : [pl])) touch(p);\n    ember(dt);', count: 1 }
+  ] }
+);
 const NOPATCH = !!process.env.SIM_NOPATCH;
 const PATCHED = [];
 

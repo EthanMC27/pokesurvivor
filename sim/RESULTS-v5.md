@@ -12,6 +12,23 @@ vivas, `derr.` derrotados (mediana), `tope Pot.` partidas que llegan a las 40 ca
 `min tope` minuto mediano en que llegan, `atk@15` cartas de Potencia en el minuto 15, `vs base`
 cociente geométrico de tiempo emparejado por semilla con la primera variante (±1 error típico).
 
+## Conclusiones
+
+1. **La mejor bola de nieve sigue siendo Acero + Puño Meteoro + Danza Espada + Fortaleza + Pañuelo
+   Elección, pero hay que reservar huecos** (no aprender otros ataques hasta tener las dos danzas). Sin
+   reservar, 42 % llegan al minuto 30; reservando, 55 % (×1,50 frente al bot normal, 160 parejas).
+2. Juntando 660 partidas con la receta: **Cobalion 78 %, Archaludon 75 %, Kartana y Dialga 68 %,
+   Empoleon (con Movimiento inicial = Puño Meteoro) 65 %, Gholdengo 60 %, Klinklang 58 %, Lucario,
+   Revavroom y Durant 55 %, Togedemaru (con Movimiento inicial) 52 %** al minuto 30, con nivel ~95-100
+   en el min 15 y ~140-160 en el 30.
+3. **Peor que en la versión anterior** (mismos 8 Pokémon: 69 % → 55 % al 30, nivel 171 → 159 en el 30,
+   tope de Potencia 26 % → 6 %), por más muertes en el muro del minuto 6-12 y un final más lento.
+4. **Lucha ya no hace bola de nieve** (Esfera Aural es especial y Danza Espada ya no la sube); ni Patada
+   Giro ni Garra Dragón la sustituyen. Roca sube de nivel pero muere pronto.
+5. **Agua y Fantasma con Maquinación** (Torbellino, Viento Aciago) son lo más seguro de esta versión
+   (70-90 % al 30) pero suben poco: no son bola de nieve. Gengar con el bot normal está a medio camino.
+6. **Veneno**: igual que antes fuera de la Sentencia; en ella ya no tumba legendarios gigantes.
+
 ## 1. Qué cambió y qué se esperaba [CÓDIGO]
 
 - Puño Meteoro es **físico**: pega con el Ataque del Pokémon, no con el mayor de los dos.
@@ -170,7 +187,7 @@ old-confirm1   TODOS       20  31:01  8:24   10/20  41    50    68    1963   0/2
   43 en el min 15 y 56 en el 30 (antes 54-68 y 84-181). El bot normal ya ni la monta: ahora elige
   **Puño Dinámico** (aturdir) de principal. Causas [CÓDIGO]: Esfera Aural es especial y Danza Espada ya
   no la sube; y el modelo de cartas del bot sobrevaloraba Puño Dinámico evolucionado ×1,5 (corregible
-  con `tableLevel`, sección 6). El aguante es parecido (25/80 al minuto 30).
+  con `tableLevel`, sección 10). El aguante es parecido (25/80 al minuto 30).
 - **Veneno**: fuera de la Sentencia no cambia nada en el código (los enemigos no pasan de 60.000 de
   vida). Lo que se ve es otra cosa: **Gengar sube mucho** (nivel 89 en el min 15 frente a 57, 11/20 al
   minuto 30) porque ahora monta Viento Aciago, a veces con Maquinación (sus ataques especiales suben con su At.
@@ -293,3 +310,292 @@ pronto penaliza). Con 2 semillas es una criba: sólo sirve para elegir a quién 
 
 966 Pokémon; nivel min 15: mediana 28.5, p90 52.5
 En el top 40: harden 22, meteor-mash 14, swords-dance 10, nasty-plot 10, body-slam 10, hyper-beam 8, metal-claw 8, whirlpool 8, tackle 8, rock-slide 7, hail 5, aqua-ring 4, rock-throw 3, toxic-spikes 3, ominous-wind 3
+
+## 6. Ronda fuerte: top 40 de la criba + 7 de referencia, bot normal (semillas 901-910, partida completa) [MEDIDO, 470 partidas]
+
+```
+variante  Pokémon      n    t med  p10    ≥30      nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base
+strong    Ferropúas    10   6:38   5:20   1/10     68    109   176   995    0/10       -         10             
+strong    Magneton     10   8:27   6:27   0/10     61    80    -     1677   0/10       -         10             
+strong    Cryogonal    10   16:53  5:40   4/10     56    80    117   2973   0/10       -         8              
+strong    Jirachi      10   8:37   7:02   1/10     63    88    96    1639   0/10       -         10             
+strong    Archaludon   10   18:12  6:41   4/10     64    101   196   5015   1/10       29.6      11             
+strong    Skarmory     10   7:59   7:29   1/10     63    89    118   1269   0/10       -         12             
+strong    Lycanroc     10   8:50   5:05   2/10     63    105   166   1472   0/10       -         14             
+strong    Dialga       10   8:26   6:51   3/10     65    89    146   1649   0/10       -         11             
+strong    Revavroom    10   7:40   6:02   2/10     69    111   169   1307   0/10       -         21             
+strong    Kartana      10   7:50   7:13   1/10     71    87    119   1429   0/10       -         5              
+strong    Polteageist  10   31:19  10:12  8/10     54    68    87    3121   0/10       -         7              
+strong    Overqwil     10   7:38   4:54   1/10     57    76    93    1097   0/10       -         9              
+strong    Rayquaza     10   7:04   5:35   0/10     47    58    -     967    0/10       -         10             
+strong    Tentacruel   10   9:49   6:02   3/10     52    74    87    1177   0/10       -         6              
+strong    Mantine      10   10:58  6:34   1/10     41    57    67    952    0/10       -         6              
+strong    Prinplup     10   30:57  6:02   5/10     45    53    59    1552   0/10       -         7              
+strong    Stonjourner  10   8:49   5:16   4/10     65    105   159   1688   0/10       -         12             
+strong    Weavile      10   5:43   4:46   0/10     -     -     -     500    0/10       -         -              
+strong    Heatran      10   7:36   5:08   2/10     64    96    142   1246   0/10       -         12             
+strong    Manaphy      10   30:44  4:59   5/10     38    46    60    1093   0/10       -         5              
+strong    Terrakion    10   8:45   7:04   1/10     57    75    100   1658   0/10       -         3              
+strong    Glalie       10   7:03   5:35   1/10     59    83    132   1045   0/10       -         12             
+strong    Bastiodon    10   7:07   5:02   1/10     62    87    132   939    0/10       -         7              
+strong    Durant       10   9:35   7:20   4/10     63    89    137   1979   0/10       -         9              
+strong    Cloyster     10   10:16  5:54   2/10     58    76    106   1597   0/10       -         10             
+strong    Hoopa        10   10:55  6:56   2/10     45    66    72    1279   0/10       -         9              
+strong    Bisharp      10   6:54   6:42   0/10     -     -     -     1076   0/10       -         -              
+strong    Cobalion     10   30:45  8:54   6/10     56    75    99    3991   1/10       23.2      11             
+strong    Cofagrigus   10   10:38  4:35   2/10     58    83    112   1867   0/10       -         15             
+strong    Azumarill    10   9:21   5:33   2/10     40    47    55    940    0/10       -         7              
+strong    Gorebyss     10   17:26  7:27   4/10     46    45    57    1537   0/10       -         7              
+strong    Regirock     10   8:29   5:52   1/10     68    108   165   1610   0/10       -         13             
+strong    Walrein      10   10:47  4:55   3/10     63    95    151   1668   0/10       -         14             
+strong    Porygon-Z    10   31:22  9:26   6/10     49    67    94    3257   0/10       -         12             
+strong    Tyranitar    10   8:34   4:41   0/10     62    95    -     1142   0/10       -         12             
+strong    Escavalier   10   7:58   6:49   1/10     69    108   147   1144   0/10       -         17             
+strong    Rockruff     10   5:01   2:15   0/10     -     -     -     516    0/10       -         -              
+strong    Pincurchin   10   4:55   3:56   0/10     -     -     -     554    0/10       -         -              
+strong    Oshawott     10   30:28  4:29   5/10     38    47    58    1127   0/10       -         6              
+strong    Orthworm     10   7:01   4:59   2/10     65    111   198   1116   1/10       29.6      18             
+strong    Lucario      10   9:02   5:48   2/10     57    100   156   1454   0/10       -         15             
+strong    Empoleon     10   11:23  5:15   4/10     56    105   165   2101   1/10       27.7      10             
+strong    Togedemaru   10   10:59  6:35   2/10     62    95    156   2128   0/10       -         8              
+strong    Gengar       10   31:25  16:20  7/10     57    79    148   5160   0/10       -         10             
+strong    Conkeldurr   10   31:25  5:49   5/10     37    43    55    1201   0/10       -         5              
+strong    Zamazenta    10   26:59  9:15   4/10     37    43    67    1332   0/10       -         4              
+strong    Machamp      10   12:32  7:12   2/10     35    47    65    960    0/10       -         4              
+strong    TODOS        470  8:45   5:04   117/470  55    75    105   1241   4/470      29.6
+```
+
+- Con el bot normal, **casi todos los que más suben de nivel mueren hacia el minuto 7-9**: Orthworm,
+  Revavroom, Regirock, Lycanroc, Stonjourner, Ferropúas y Escavalier van por el nivel 105-111 en el
+  minuto 15 y sólo 1-4 de 10 llegan al 30. Es lo que priofast corregía con el Acero.
+- Los que aguantan sin receta suben poco (Polteageist, Porygon-Z, Prinplup, Oshawott, Manaphy: nivel
+  47-68 en el min 15). La excepción es **Gengar**: 7/10 al 30, nivel 79 y 148.
+
+## 7. Recetas por familia, estilo priofast con huecos reservados (semillas 901-920) [MEDIDO, 640 + 640 partidas]
+
+Todas: prioridad a los 3 ataques de la familia, `reserve`, Carrera ×3 y Pañuelo Elección primero.
+Acero: Puño Meteoro → Danza Espada → Fortaleza. Fantasma: Viento Aciago → Maquinación → Fortaleza.
+Agua: Torbellino → Maquinación → Fortaleza. Roca: Avalancha → Danza Espada → Fortaleza. Hielo:
+Granizo → Maquinación → Fortaleza. Lucha: Patada Giro → Danza Espada → Fortaleza. Dragón: Garra
+Dragón → Danza Dragón → Fortaleza.
+
+```
+variante   Pokémon     n    t med  p10   ≥30     nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base
+rec-steel  Orthworm    20   9:10   6:54  3/20    63    93    148   1917   0/20       -         15             
+rec-steel  Cobalion    20   31:35  8:01  15/20   65    102   149   9660   0/20       -         13             
+rec-steel  Durant      20   9:36   6:57  8/20    61    90    159   2001   1/20       27.3      13             
+rec-steel  Escavalier  20   9:32   7:03  6/20    63    106   162   2189   0/20       -         13             
+rec-steel  Melmetal    20   30:30  8:45  10/20   69    108   194   9866   3/20       28.2      13             
+rec-steel  Klinklang   20   30:41  8:41  12/20   64    103   164   9652   1/20       24.9      15             
+rec-steel  Registeel   20   30:48  8:41  12/20   64    99    172   10196  2/20       29.9      12             
+rec-steel  Dialga      20   30:56  8:08  12/20   65    103   166   10621  2/20       26.6      15             
+rec-steel  Heatran     20   8:38   5:31  5/20    64    105   169   1691   0/20       -         13             
+rec-steel  TODOS       180  11:43  6:47  83/180  64    102   162   2724   9/180      27.3                     
+variante   Pokémon      n    t med  p10    ≥30     nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base
+rec-ghost  Gengar       20   31:35  10:02  12/20   51    70    97    3056   0/20       -         8              
+rec-ghost  Polteageist  20   31:40  30:48  18/20   53    70    88    3262   1/20       28.6      7              
+rec-ghost  Cofagrigus   20   30:29  7:50   10/20   52    65    85    2330   0/20       -         7              
+rec-ghost  Hoopa        20   31:29  7:04   13/20   53    73    100   2927   0/20       -         8              
+rec-ghost  Mismagius    20   31:40  12:12  17/20   52    63    79    2997   0/20       -         7              
+rec-ghost  TODOS        100  31:29  8:34   70/100  52    67    88    2927   1/100      28.6                     
+variante   Pokémon     n    t med  p10    ≥30     nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base
+rec-water  Empoleon    20   31:34  5:52   15/20   47    60    84    2415   0/20       -         5              
+rec-water  Prinplup    20   31:40  30:36  18/20   49    61    77    2611   0/20       -         6              
+rec-water  Manaphy     20   31:40  30:29  18/20   52    64    82    2971   0/20       -         7              
+rec-water  Kyogre      20   31:40  8:31   14/20   51    70    99    3931   0/20       -         7              
+rec-water  Tentacruel  20   31:40  11:35  16/20   48    58    86    2750   0/20       -         6              
+rec-water  Primarina   20   23:46  8:41   8/20    45    55    77    1953   0/20       -         4              
+rec-water  TODOS       120  31:39  8:27   89/120  47    61    84    2626   0/120      -                        
+variante  Pokémon      n    t med  p10   ≥30     nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base
+rec-rock  Stonjourner  20   8:44   6:34  4/20    62    96    169   1675   0/20       -         16             
+rec-rock  Lycanroc     20   10:07  5:46  6/20    60    82    154   1978   1/20       29.9      10             
+rec-rock  Regirock     20   10:01  4:43  8/20    60    91    133   2172   0/20       -         11             
+rec-rock  Ferropúas    20   8:41   5:38  6/20    60    93    140   1690   0/20       -         9              
+rec-rock  Tyranitar    20   7:43   4:56  4/20    59    92    132   1259   0/20       -         11             
+rec-rock  TODOS        100  8:43   5:12  28/100  60    91    138   1690   1/100      29.9                     
+variante  Pokémon    n   t med  p10   ≥30    nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base
+rec-ice   Cryogonal  20  18:06  8:01  9/20   61    88    124   3788   1/20       25.7      10             
+rec-ice   Walrein    20  10:36  6:46  5/20   57    85    123   1846   0/20       -         10             
+rec-ice   TODOS      40  17:43  7:09  14/40  59    86    124   3064   1/40       25.7                     
+variante   Pokémon     n   t med  p10   ≥30   nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base
+rec-fight  Conkeldurr  20  7:27   4:18  0/20  26    27    -     319    0/20       -         1              
+rec-fight  Machamp     20  9:14   5:07  0/20  22    28    -     321    0/20       -         1              
+rec-fight  Zamazenta   20  14:41  7:16  4/20  24    30    42    438    0/20       -         3              
+rec-fight  Terrakion   20  8:16   4:48  0/20  27    30    -     272    0/20       -         1              
+rec-fight  TODOS       80  9:14   5:07  4/80  24    29    42    322    0/80       -                        
+variante    Pokémon   n   t med  p10   ≥30   nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base
+rec-dragon  Rayquaza  20  17:04  4:47  6/20  33    37    53    743    0/20       -         4              
+rec-dragon  TODOS     20  17:04  4:47  6/20  33    37    53    743    0/20       -
+```
+
+Emparejado con el bot normal en las mismas semillas (A = normal, B = receta):
+
+```
+Pokémon        n    mediana A→B  llegan30 A→B    nv15 A→B     derrot. A→B  ×geo
+Cobalion      20   10:19→31:34       9→15       77→100.0  2087.5→9467.0  ×1.53
+Cofagrigus    20   10:13→26:53       3→10       64→65    1433.0→2187.5  ×1.51
+Conkeldurr    20   21:57→7:24        8→0        50→27    1127.5→313.5   ×0.56
+Cryogonal     20   21:27→18:00       7→9        72→88    3046.0→3772.5  ×1.01
+Dialga        20    8:38→30:53       3→12       89→102.5  1699.5→10378.0  ×1.83
+Durant        20    9:32→9:15        6→8      87.0→89.5  1813.0→1951.0  ×1.15
+Empoleon      20    9:30→31:30       6→15     98.0→58.5  1794.5→2123.0  ×1.88
+Escavalier    20    8:14→9:28        1→6      105.5→104.0  1118.5→2127.0  ×1.49
+Ferropúas     20    6:33→8:34        3→6       100→91.0   931.0→1680.5  ×1.39
+Gengar        20   31:06→31:34      12→12     71.0→70    3033.5→2779.0  ×1.10
+Heatran       20    8:04→8:37        4→5      96.0→99.0  1429.0→1685.5  ×1.09
+Hoopa         20    8:53→31:08       5→13       64→73    1230.0→2924.5  ×1.78
+Klinklang     20    9:16→30:40       5→12      104→103.0  1861.0→8640.5  ×1.56
+Kyogre        20   31:31→31:40      14→14       67→70    2644.0→3568.5  ×0.99
+Lycanroc      20    7:02→9:53        3→6       102→81.5  1043.0→1901.0  ×1.54
+Machamp       20   10:18→9:05        3→0        48→27.0   820.0→316.0   ×0.81
+Manaphy       20   27:07→31:40      10→18       55→63.0  1554.0→2967.5  ×1.59
+Melmetal      20    8:53→20:30       4→10      102→107.0  1840.5→6228.0  ×1.62
+Mismagius     20   11:25→31:40       7→17       81→63    1558.0→2909.0  ×1.95
+Orthworm      20    7:05→9:08        3→3       107→93    1083.0→1897.0  ×1.24
+Polteageist   20   31:17→31:40      16→18     71.5→70    2719.0→3225.0  ×1.20
+Primarina     20    8:58→22:59       5→8      71.0→55    1117.0→1943.0  ×1.56
+Prinplup      20   30:57→31:40      13→18     52.5→60.5  1576.5→2603.0  ×1.47
+Rayquaza      20    7:05→16:55       1→6        58→37     985.5→729.0   ×1.58
+Regirock      20    7:24→9:31        1→8      101.0→91    1039.0→1976.0  ×1.65
+Registeel     20    7:35→30:44       1→12      111→99    1219.5→10037.0  ×2.51
+Stonjourner   20    7:42→8:35        5→4      94.5→96.0  1273.0→1615.0  ×1.03
+Tentacruel    20   16:35→31:40       8→16     69.0→58.0  1625.0→2720.0  ×1.62
+Terrakion     20    8:43→7:52        2→0      75.5→29.5  1664.0→264.0   ×0.75
+Tyranitar     20    7:09→7:39        0→4        95→89.0   995.0→1245.5  ×1.32
+Walrein       20    8:21→10:13       5→5        91→85    1363.5→1763.0  ×1.35
+Zamazenta     20   28:47→13:33      10→4        39→30.0  1189.0→410.0   ×0.75
+TOTAL 640 parejas: ×1.33 (IC95 ×1.24-×1.42); llegan30 183→294
+```
+
+- **Acero**: todas mejoran (×1,09-×2,51): Registeel ×2,51, Dialga ×1,83, Melmetal ×1,62, Klinklang ×1,56,
+  Cobalion ×1,53, Escavalier ×1,49.
+- **Fantasma y Agua con Maquinación**: llegan al 30 un 40-90 %, pero con nivel ~60-70 en el min 15 y
+  ~80-100 en el 30, y unos 3.000 derrotados: aguante, no bola de nieve.
+- **Roca**: mejora el aguante (×1,0-×1,65) pero sigue muriendo pronto (28/100 al 30).
+- **Lucha** (Patada Giro) y **Dragón** (Garra Dragón): mucho peor. El giro obliga a meterse en la horda
+  sin el −25 % de daño recibido del cuerpo a cuerpo (`Player.hurt`: sólo `kind: 'melee'`) [CÓDIGO], y las
+  partidas mueren entre los minutos 4 y 6, antes del primer vínculo. [MEDIDO]
+
+## 8. Confirmación con semillas nuevas (1001-1020) [MEDIDO, 460 partidas]
+
+`conf-pfr`: priofast con reserva. `conf-pfrs`: además Movimiento inicial = Puño Meteoro (Empoleon y
+Togedemaru, que en la sección 2 mejoraban así). `conf-normal`: bot normal (Gengar y los baratos nuevos).
+
+```
+variante     Pokémon     n    t med  p10   ≥30      nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base        
+conf-pfr     Archaludon  20   31:04  8:33  14/20    62    91    133   7263   1/20       29.8      13                     
+conf-pfr     Kartana     20   30:55  8:31  12/20    66    101   160   11359  2/20       28.1      12                     
+conf-pfr     Gholdengo   20   27:32  6:27  9/20     61    90    128   5444   0/20       -         9                      
+conf-pfr     Lucario     20   17:35  8:13  9/20     63    99    165   4427   0/20       -         13                     
+conf-pfr     Cobalion    20   31:40  8:56  16/20    61    89    134   7802   0/20       -         8                      
+conf-pfr     Registeel   20   10:18  8:20  7/20     66    100   150   2375   1/20       29.3      11                     
+conf-pfr     Dialga      20   31:11  8:37  15/20    64    96    143   10392  0/20       -         10                     
+conf-pfr     Klinklang   20   30:33  8:47  11/20    63    94    146   8732   1/20       29.6      10                     
+conf-pfr     Melmetal    20   9:19   8:36  6/20     67    112   198   2053   4/20       27.0      16                     
+conf-pfr     Revavroom   20   30:42  7:07  11/20    63    98    154   9239   0/20       -         13                     
+conf-pfr     Durant      20   31:21  6:56  14/20    61    93    141   8909   1/20       25.0      12                     
+conf-pfr     Pawniard    20   9:04   5:52  8/20     63    93    145   1832   0/20       -         12                     
+conf-pfr     Klang       20   9:19   7:47  5/20     65    101   186   1924   1/20       29.0      17                     
+conf-normal  Klang       20   8:07   5:05  1/20     64    96    166   1335   0/20       -         10      ×0.65 ±17% (20)
+conf-pfr     Perrserker  20   17:28  8:25  9/20     65    106   182   4668   3/20       27.0      15                     
+conf-normal  Perrserker  20   8:48   5:59  5/20     67    107   182   1793   0/20       -         13      ×0.73 ±21% (20)
+conf-pfr     Bisharp     20   8:55   6:38  4/20     66    104   172   1802   1/20       28.1      18                     
+conf-normal  Bisharp     20   6:59   5:27  4/20     69    108   182   1133   0/20       -         17      ×0.86 ±21% (20)
+conf-pfr     Skarmory    20   8:53   6:36  8/20     63    92    138   1804   0/20       -         10                     
+conf-normal  Skarmory    20   8:31   5:23  1/20     65    102   152   1654   0/20       -         16      ×0.71 ±19% (20)
+conf-pfrs    Empoleon    20   30:52  7:29  12/20    62    92    143   6651   1/20       27.1      9                      
+conf-pfrs    Togedemaru  20   9:05   6:45  8/20     60    89    138   1964   0/20       -         10                     
+conf-normal  Gengar      20   27:58  7:08  9/20     58    92    134   3371   0/20       -         8                      
+conf-pfr     TODOS       320  27:32  7:10  158/320  63    96    150   3782   15/320     28.1                             
+conf-pfrs    TODOS       40   30:32  6:56  20/40    61    89    138   2922   1/40       27.1              ×NaN ±NaN% (0) 
+conf-normal  TODOS       100  8:33   5:23  20/100   65    98    161   1643   0/100      -                 ×0.73 ±10% (80)
+```
+
+Emparejado en los baratos nuevos (A = normal, B = priofast con reserva):
+
+```
+Pokémon        n    mediana A→B  llegan30 A→B    nv15 A→B     derrot. A→B  ×geo
+Bisharp       20    6:53→8:55        4→4      106.0→104.0  1118.0→1800.5  ×1.17
+Klang         20    8:05→9:16        1→5        96→99.5  1310.5→1862.5  ×1.53
+Perrserker    20    8:47→14:00       5→9       107→106.0  1781.5→3496.0  ×1.38
+Skarmory      20    8:30→8:51        1→8      90.5→90.5  1648.5→1759.0  ×1.40
+TOTAL 80 parejas: ×1.36 (IC95 ×1.13-×1.65); llegan30 11→26
+```
+
+Lo que se sostiene: Cobalion (16/20), Dialga (15), Archaludon (14), Durant (14), Kartana (12), Empoleon
+con Movimiento inicial (12), Klinklang y Revavroom (11). Lo que baja respecto a la tanda anterior:
+Registeel (12 → 7), Gholdengo (15 → 9), Lucario (13 → 9). Con 20 partidas, ±3 es ruido normal.
+
+## 9. Ranking juntando todo (misma receta) [MEDIDO]
+
+```
+variante     Pokémon     n    t med  p10   ≥30      nv10  nv15  nv30  derr.  tope Pot.  min tope  atk@15  vs base        
+pool-pfr     Archaludon  40   31:04  7:07  30/40    63    96    152   9989   2/40       29.8      13                     
+pool-pfrs    Archaludon  20   20:19  6:39  9/20     63    91    147   4606   0/20       -         11      ×0.65 ±26% (20)
+pool-pfr     Lucario     40   30:52  7:23  22/40    64    101   159   7971   1/40       30.0      12                     
+pool-pfrs    Lucario     20   30:55  5:58  10/20    64    99    158   7957   2/20       27.5      11      ×0.84 ±23% (20)
+pool-pfr     Gholdengo   40   31:00  6:49  24/40    63    91    135   6796   1/40       30.0      10                     
+pool-pfrs    Gholdengo   20   31:40  5:21  14/20    63    96    155   10827  0/20       -         12      ×0.86 ±21% (20)
+pool-pfr     Kartana     40   31:10  8:35  27/40    66    102   161   12721  5/40       27.8      13                     
+pool-pfrs    Kartana     20   31:03  7:34  14/20    65    103   180   11758  4/20       29.4      12      ×0.96 ±14% (20)
+pool-pfr     Empoleon    20   9:57   5:57  6/20     64    97    150   2157   0/20       -         13                     
+pool-pfrs    Empoleon    40   31:03  7:43  26/40    63    96    144   8148   3/40       27.4      11      ×1.64 ±22% (20)
+pool-pfr     Revavroom   40   30:45  7:07  22/40    65    101   160   9289   2/40       29.5      13                     
+pool-pfrs    Revavroom   20   10:17  5:00  8/20     66    98    164   2109   0/20       -         13      ×0.70 ±26% (20)
+pool-pfr     Pawniard    40   8:49   5:28  14/40    63    96    145   1742   2/40       28.5      11                     
+pool-pfrs    Pawniard    20   8:55   5:41  4/20     62    103   179   1422   0/20       -         15      ×0.95 ±19% (20)
+pool-pfr     Togedemaru  20   8:35   6:37  6/20     62    98    161   1745   0/20       -         13                     
+pool-pfrs    Togedemaru  40   30:39  6:52  21/40    60    89    133   4764   0/40       -         10      ×1.67 ±17% (20)
+pool-pfr     Orthworm    20   9:10   6:54  3/20     63    93    148   1917   0/20       -         15                     
+pool-pfr     Cobalion    40   31:35  8:27  31/40    62    94    142   7807   0/40       -         10                     
+pool-pfr     Durant      40   30:51  6:56  22/40    61    93    141   6611   2/40       27.3      12                     
+pool-pfr     Escavalier  20   9:32   7:03  6/20     63    106   162   2189   0/20       -         13                     
+pool-pfr     Melmetal    40   10:10  8:36  16/40    67    108   194   2379   7/40       27.9      14                     
+pool-pfr     Klinklang   40   30:40  8:41  23/40    63    100   155   8732   2/40       29.6      11                     
+pool-pfr     Registeel   40   26:10  8:20  19/40    65    100   158   4552   3/40       29.3      12                     
+pool-pfr     Dialga      40   31:04  8:08  27/40    65    97    161   10392  2/40       26.6      12                     
+pool-pfr     Heatran     20   8:38   5:31  5/20     64    105   169   1691   0/20       -         13                     
+pool-pfr     Klang       20   9:19   7:47  5/20     65    101   186   1924   1/20       29.0      17                     
+pool-pfr     Perrserker  20   17:28  8:25  9/20     65    106   182   4668   3/20       27.0      15                     
+pool-pfr     Bisharp     20   8:55   6:38  4/20     66    104   172   1802   1/20       28.1      18                     
+pool-pfr     Skarmory    20   8:53   6:36  8/20     63    92    138   1804   0/20       -         10                     
+pool-gengar  Gengar      60   30:51  6:45  32/60    58    82    118   2863   0/60       -         8                      
+pool-pfr     TODOS       660  29:21  6:43  329/660  64    98    154   5022   34/660     28.1                             
+pool-pfrs    TODOS       200  30:39  6:41  106/200  63    95    147   6366   9/200      27.9              ×0.98 ±8% (160)
+pool-gengar  TODOS       60   30:51  6:45  32/60    58    82    118   2863   0/60       -                 ×NaN ±NaN% (0)
+```
+
+Objeto que llevaban en el minuto 7 (las partidas de `pool-pfr` y `pool-pfrs` que llegan vivas al 7):
+Pañuelo Elección 256/355 llegan al 30 (72 %), Garra Rápida 78/169 (46 %), Restos 61/119 (51 %),
+Chaleco Asalto 27/67 (40 %), Banda Focus 10/33 (30 %). [MEDIDO; no es un experimento: quien lo lleva
+también tuvo más suerte con los objetos]
+
+## 10. Lo que no se ha probado
+
+- **`tableLevel`** (sim/bots/README.md): el modelo de cartas sobrevalora algunos ataques nuevos (Puño
+  Dinámico evolucionado ×1,5 respecto a la tabla medida) porque la tabla se ajusta con un solo factor por
+  ataque. La opción lo corrige; no se ha medido si cambia los resultados del bot normal.
+- Más vetos a mano (por ejemplo, vetar los ataques que llenan huecos): `reserve` ya hace lo mismo para
+  el bot, pero un jugador con vetos manuales podría ganar algo de espacio en las tandas.
+- Movimiento inicial para los que no son Empoleon y Togedemaru: en conjunto ×0,98 (sección 2); no se
+  buscó el mejor inicial distinto de Puño Meteoro.
+- La Sentencia (minuto 30 en adelante) sólo se ve hasta el minuto 31:40 (`--max 1900`).
+
+## 11. Cómo repetirlo
+
+Colas en `sim/out/v5/queue{1..6}.sh` (en disco, fuera de git). Lo esencial:
+
+```
+export PATH="/c/Program Files/nodejs:$PATH"
+IR='["choicescarf","quickclaw","leftovers","assaultvest","focussash","lifeorb","shellbell","luckyegg","rockyhelmet","amuletcoin","choiceband"]'
+PFR='{"priority":["meteor-mash","swords-dance","harden"],"reserve":true,"statWeights":{"spd":3},"itemRank":'"$IR"'}'
+node sim/sweep.js --bot best --dex 1018,448,1000,798,395,966,624,777 --seeds 701-720 --max 1900 --ban auto --jobs 14 --out sim/out/v5/steel-pfr.jsonl --opts "$PFR"
+node sim/sweep.js --bot best --dex all --seeds 801-802 --max 900 --ban auto --jobs 14 --out sim/out/v5/screen.jsonl
+node sim/screenreport.js sim/out/v5/screen.jsonl --top 40
+node sim/snowstats.js sim/out/v5/steel-normal.jsonl sim/out/v5/steel-pfr.jsonl
+PYTHONIOENCODING=utf-8 python sim/paired_ana.py sim/out/v5/steel-normal.jsonl sim/out/v5/steel-pfr.jsonl
+node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex 638
+```
+
+Tiempos con 14 hilos: una partida de 30 min de Acero con priofast ≈ 1 min de reloj; la criba entera
+≈ 4 h; la ronda fuerte ≈ 5 h.

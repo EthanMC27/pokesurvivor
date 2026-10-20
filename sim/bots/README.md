@@ -117,6 +117,9 @@ Desde la consola: `node sim/bots/cards.js 94 4 68`. Se pasan con `run.js --ban a
 | `table` | `true` | `false` = sólo la fórmula, sin `move-dps.json` |
 | `mover` | `'flee'` | movimiento con `--bot cards` sola |
 | `log` | `false` | saca cada tanda con el valor de cada carta, los cambios y los vínculos |
+| `reserve` | `false` | (19-10-2026) reservar huecos: mientras falten ataques de `priority` y queden justo esos huecos libres, no aprende ningún otro (con 4 huecos llenos no salen ataques nuevos). Imprescindible para priofast en la versión nueva |
+| `start` | `'base'` | (19-10-2026) Movimiento inicial: `'base'` = el de serie, un id, o `'auto'` = el 1.º de `priority` que se pueda (o el que elija el modelo) |
+| `tableLevel` | `false` | (19-10-2026) factor de `move-dps.json` por nivel en vez de uno por ataque (el modelo coincide con la tabla a cada nivel). Sin probar en partidas |
 
 Ejemplos:
 
@@ -231,3 +234,12 @@ Tercer brazo, lo más prometedor de la v3 (`--opts '{"statWeights":{"atk":2}}'`,
 mismas 160: ×1,04 (0,92-1,15), 60 ganadas / 60 perdidas, 55/160 al min 30, mediana 18:00, nivel en
 el min 30 79, atkMul ×2,61. Sin efecto claro (con las 240 de antes, sigue ≈ ×1,02-1,04): no se adopta.
 Resumen: `node sim/out/r4/sum.js A.json B.json` (o `node sim/cardlab.js pair A.json B.json`).
+
+## Versión del 19-10-2026 (sim/FIDELITY.md, sim/RESULTS-v5.md)
+
+`cards.js` usa el ataque de cada movimiento (físico o especial, ×1,2 monotipo), las danzas por
+categoría (Danza Espada/Dragón físicos, Maquinación especiales), la defensa media de los enemigos y las
+8 formas nuevas. `move-dps.json` recalibrado (la anterior: `move-dps-v1.json`). Por defecto decide
+como antes salvo por eso. Receta priofast nueva: `{"priority":["meteor-mash","swords-dance","harden"],
+"reserve":true,"statWeights":{"spd":3},"itemRank":[...Pañuelo primero...]}`.
+

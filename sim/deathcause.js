@@ -16,7 +16,7 @@ const range = s => { const o = []; for (const p of String(s).split(',')) { const
 const botName = a.bot || 'best', dex = +a.dex, last = +a.last || 15;
 const opts = a.opts ? JSON.parse(a.opts) : {};
 let ban;
-if (a.ban === 'auto') { const { G } = load(1); ban = require('./bots/cards').bans(G.DEX_BY[dex], G); }
+if (a.ban === 'auto') { const { G } = load(1); ban = require('./bots/cards').bans(G.DEX_BY[dex], G, a.opts ? JSON.parse(a.opts) : {}); }
 else if (a.ban) ban = String(a.ban).split(',');
 
 for (const seed of range(a.seeds || '1')) {
@@ -26,7 +26,7 @@ for (const seed of range(a.seeds || '1')) {
   const init0 = bot.init;
   bot.init = function (api) {
     const pl = api.pl, G = api.G, h0 = pl.hurt.bind(pl);
-    pl.hurt = function (amount, type, pure) {
+    pl.hurt = function (amount, type, pure, cat) {      // cat: físico/especial (19-10-2026)
       // Primer marco que no sea este envoltorio ni el motor (engine.js también envuelve hurt).
       const st = (new Error().stack || '').split('\n').slice(2).find(l => !/deathcause\.js|engine\.js/.test(l)) || '';
       const m = st.match(/([\w-]+\.js):(\d+)/);
@@ -38,7 +38,7 @@ for (const seed of range(a.seeds || '1')) {
         // Por tamaño de la horda que te rodea (y si es un jefe): así se ve si te encierran.
         if (e) who = ' contacto' + (e.boss ? ' JEFE' : '') + (near.length >= 10 ? ' 10+ cerca' : near.length >= 4 ? ' 4-9 cerca' : ' 1-3 cerca');
       }
-      const hp0 = pl.hp, r = h0(amount, type, pure);
+      const hp0 = pl.hp, r = h0(amount, type, pure, cat);
       log.push({ t: api.G.Game.st.time, src: (m ? m[1] + ':' + m[2] : '?') + who, raw: amount, real: hp0 - pl.hp, arena: !!G.Rift.inArena, act: pl.active, judge: !!G.Judgment.active, hp: pl.hp });
       return r;
     };
@@ -50,7 +50,7 @@ for (const seed of range(a.seeds || '1')) {
   const acts = {}; for (const x of win) acts[x.act] = (acts[x.act] || 0) + 1;
   const by = {};
   for (const x of win) { const k = x.src + (x.arena ? ' (grieta)' : '') + (x.judge ? ' (Sentencia)' : ''); (by[k] = by[k] || { n: 0, real: 0 }); by[k].n++; by[k].real += x.real; }
-  console.log(`${r.name} semilla ${seed}: ${r.dead ? 'cae' : 'vive'} a ${Math.floor(end / 60)}:${String(Math.round(end % 60)).padStart(2, '0')} nv ${r.level}, reducción ${r.reduce}, vida máx ${r.curve.length ? r.curve[r.curve.length - 1].hp : '?'}, objeto ${r.item}, hueco activo al final ${JSON.stringify(acts)}, huecos ${JSON.stringify(r.moves)}`);
+  console.log(`${r.name} semilla ${seed}: ${r.dead ? 'cae' : 'vive'} a ${Math.floor(end / 60)}:${String(Math.round(end % 60)).padStart(2, '0')} nv ${r.level}, reducción ${r.reduce}, vida en el último minuto ${r.curve.length ? r.curve[r.curve.length - 1].hp : '?'}, objeto ${r.item}, hueco activo al final ${JSON.stringify(acts)}, huecos ${JSON.stringify(r.moves)}`);
   if (r.dead) for (const [k, v] of Object.entries(by).sort((x, y) => y[1].real - x[1].real))
     console.log(`   ${k.padEnd(30)} ${String(v.n).padStart(4)} golpes  ${v.real.toFixed(0).padStart(6)} de vida`);
 }

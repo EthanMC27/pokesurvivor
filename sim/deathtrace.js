@@ -36,13 +36,14 @@ bot.move = function (api) {
   if (!wrapped) {
     wrapped = true;
     const inner = pl.hurt;                 // el envoltorio del motor (mide y aplica)
-    pl.hurt = function (amount, type, pure) {
+    pl.hurt = function (amount, type, pure, cat) {      // cat: físico/especial (19-10-2026)
       const before = this.hp;
       const stack = new Error().stack.split('\n').slice(2, 6).join(' ');
       let src = 'otro';
       if (/combat\.js:\d+/.test(stack)) src = /pl\.hurt\(e\.dmg|combat\.js:66\d/.test(stack) ? 'contacto' : 'disparo';
-      if (/combat\.js:56\d/.test(stack)) src = 'disparo';
-      if (/combat\.js:66\d/.test(stack)) src = 'contacto';
+      // (combat.js del 19-10-2026: disparo enemigo en la línea 772, contacto en la 877)
+      if (/combat\.js:77\d/.test(stack)) src = 'disparo';
+      if (/combat\.js:87\d/.test(stack)) src = 'contacto';
       if (/hazards\.js/.test(stack)) src = 'zona';
       if (/interact\.js/.test(stack)) src = 'trampa';
       if (/judgment\.js/.test(stack)) src = 'arceus';
@@ -54,7 +55,7 @@ bot.move = function (api) {
       }
       const k = type ? G.Types.mult(type, this.mon.types) : 1;
       const near = r => G.EnemyMgr.queryCircle(this.x, this.y, r).filter(e => !e.dead).length;
-      inner.call(this, amount, type, pure);
+      inner.call(this, amount, type, pure, cat);
       const d = before - this.hp;
       if (d > 0) hits.push({ t: +api.time.toFixed(1), d: Math.round(d), raw: Math.round(amount), src, type: type || '-', k, who,
         hp: Math.round(this.hp), max: Math.round(this.maxHp), n60: near(60), n120: near(120), total: G.EnemyMgr.count,

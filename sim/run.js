@@ -27,7 +27,8 @@ function runJob(job) {
   for (const k of Object.keys(require.cache)) if (k.startsWith(BOTS)) delete require.cache[k];
   const mk = require(path.join(BOTS, job.bot));
   return runOne({ dex: job.dex, seed: job.seed, bot: mk(job.botOpts || {}), upgrades: job.upgrades, maxTime: job.maxTime, start: job.start, item: job.item,
-                  dt: job.dt, ban: job.ban, bind: job.bind, immortal: job.immortal, mortalRifts: job.mortalRifts, mortalJudge: job.mortalJudge });
+                  dt: job.dt, ban: job.ban, bind: job.bind, immortal: job.immortal, mortalRifts: job.mortalRifts, mortalJudge: job.mortalJudge,
+                  pickSecond: !!(job.botOpts && job.botOpts.pickSecond) });   // --opts '{"pickSecond":true}': el bot elige Repertorio
 }
 
 if (!isMainThread) {

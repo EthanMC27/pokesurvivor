@@ -14,7 +14,8 @@
  *                                           En el juego no se puede rechazar: si la respuesta no
  *                                           vale, se fusiona lo de por defecto.
  *   bot.active?(api) -> índice de hueco     (opcional) cambiar de movimiento activo
- *   bot.secondMove?(pool, api) -> id        (opcional) con Repertorio, el 2.º movimiento inicial
+ *   bot.secondMove?(pool, api) -> id        (opcional, sólo con o.pickSecond) con Repertorio, el 2.º movimiento
+ *                                           inicial; sin o.pickSecond es al azar, como en el juego
  *   bot.startMove?(choices, api) -> id      (opcional) con la mejora Movimiento inicial, con cuál empezar
  *
  * `api` = { G, pl, time, sense(), rerollsLeft() } — sense() da lo que ve el jugador
@@ -74,6 +75,7 @@ function setup(G, ctx, state) {
  * @param o.item      objeto puesto desde el principio (para pruebas)
  * @param o.ban       ids de movimientos vetados (Mejoras → Veto; como mucho los niveles de 'ban')
  * @param o.bind      { idMovimiento: hueco 0-3 } (Mejoras → Atajos)
+ * @param o.pickSecond  el bot elige el 2.º movimiento de Repertorio (en el juego es al azar; ver arriba)
  * @param o.dt        paso del reloj (1/30 por defecto; el juego a 60 FPS va a 1/60)
  * @param o.immortal  no se muere: el daño se apunta en `lives` (vidas máximas que habría perdido)
  * @param o.mortalRifts  (con immortal) dentro de la grieta el daño es real: se puede perder la grieta
@@ -147,7 +149,9 @@ function runOne(o) {
 
   if (perks.startMoves >= 2) {
     const pool = G.Moves.poolFor(mon).filter(id => !pl.hasMove(id) && !pl.banned.has(id) && G.Moves.BY_ID[id].kind !== 'buff');
-    let pick = bot.secondMove ? bot.secondMove(pool.slice(), api) : null;
+    // Como startRun(): AL AZAR (G.U.pick). Hasta el 20-10-2026 el bot lo elegía (bot.secondMove), cosa que
+    // un jugador no puede hacer; eso queda sólo con o.pickSecond (experimentos).
+    let pick = o.pickSecond && bot.secondMove ? bot.secondMove(pool.slice(), api) : null;
     if (!pool.includes(pick)) pick = pool.length ? G.U.pick(pool) : null;
     if (pick) pl.addMove(pick);
     pl.setActive(0);

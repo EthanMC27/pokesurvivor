@@ -155,11 +155,11 @@ function load(seed = 1) {
     OffscreenCanvas: function () { return H; }, screen: { width: 1280, height: 720 },
     // i18n.js (18-10-2026) envuelve fillText/strokeText del prototipo del canvas.
     CanvasRenderingContext2D: Object.assign(function () {}, { prototype: { fillText() {}, strokeText() {}, measureText: () => ({ width: 0 }) } }),
-    URLSearchParams, TextEncoder, crypto: globalThis.crypto,
+    URLSearchParams, TextEncoder, TextDecoder, crypto: globalThis.crypto,      // TextDecoder: net/codec.js (20-10-2026)
     Uint8ClampedArray, Uint8Array, Float32Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float64Array, ArrayBuffer, DataView
   };
   ctx.performance = { now: () => ctx.__now };
-  ctx.window = ctx; ctx.self = ctx; ctx.globalThis = ctx;
+  ctx.window = ctx; ctx.self = ctx; ctx.top = ctx; ctx.globalThis = ctx;   // top: noframe.js (no estamos en un marco)
   vm.createContext(ctx);
   for (const s of sources()) s.runInContext(ctx);
   return { ctx, G: ctx.G };

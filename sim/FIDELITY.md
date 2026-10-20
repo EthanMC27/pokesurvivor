@@ -217,3 +217,16 @@ y su `predict`, ~20 %).
 Revisado sin cambios: `G.Pad` (gamepad.js) no encuentra mando (`navigator.getGamepads` no existe) y
 `rumble` no hace nada; `handAim` devuelve null (ajuste apagado); `m.since` usa `G.Game.st.time`, que
 el motor ya daba. El aturdimiento y los empujones son código del juego: no necesitan nada del motor.
+
+## Cuarta revisión (20-10-2026): merge de upstream hasta 11fe868 y Repertorio al azar
+
+- **Repertorio era un fallo del simulador desde el principio**: en el juego el 2.º ataque es AL AZAR
+  (`startRun`: `G.U.pick(pool)`), pero el motor dejaba que el bot lo eligiera (`bot.secondMove`). Todas las
+  recetas medidas antes de esta fecha empiezan con el 2.º ataque elegido (Puño Meteoro con priofast), cosa
+  que un jugador no puede hacer. Ahora es al azar por defecto; `o.pickSecond` (en `--opts`,
+  `"pickSecond": true`) recupera lo de antes para reproducir resultados viejos.
+- Upstream: los ataques que disparan bolas (`projectile`, `homing`, `bounce`) tienen `count` 1 y `spread`
+  0,12 de base (antes "+1 proyectil" no sumaba en 15 de ellos): recalibrados en `move-dps.json` (los que
+  rebotan, ×5 evolucionados). Infortunio y remolinos de un invitado ya funcionan en cooperativo (no afecta
+  al solitario). Tope de 50 niveles de golpe en `gainXp` (sin efecto normal).
+- `load.js`: `TextDecoder` (net/codec.js) y `top` (noframe.js). Selftest: todo bien.

@@ -23,9 +23,9 @@ El bot no juega como una persona: los números sirven para **comparar** builds, 
 2. **Novedad importante: deja huecos libres.** No aprendas ningún otro ataque hasta tener Danza Espada
    y Fortaleza. Con los 38 ataques nuevos, si llenas los 4 huecos en el primer minuto, Danza Espada
    ya no te sale hasta el primer vínculo. Sin esto la build va mucho peor. [MEDIDO + CÓDIGO]
-3. Los más fiables: **Cobalion, Archaludon** (~75 % llegan al minuto 30), **Kartana, Dialga, Empoleon,
-   Gholdengo, Klinklang, Lucario y Revavroom** (55-68 %). Baratos (rareza 3): **Durant y Togedemaru** (~53 %).
-   [MEDIDO, 40 partidas cada uno]
+3. Los más fiables: **Kartana, Cobalion y Dialga** (70 % llegan al minuto 30), **Klinklang, Archaludon,
+   Gholdengo, Melmetal, Empoleon y Lucario** (50-65 %). Baratos (rareza 3): **Perrserker y Durant** (60-70 %).
+   [MEDIDO, 20 partidas con la receta de jugador + 20-40 con la del bot]
 4. Nivel típico: ~95-100 en el minuto 15 y ~140-160 en el 30, con 7.000-12.000 derrotados. El tope de
    40 Potencias llega poco: en 1 de cada 20 partidas. [MEDIDO]
 5. **Movimiento inicial: Puño Meteoro**, con todos. Repertorio te da el segundo ataque **al azar**
@@ -103,47 +103,50 @@ Meteoro o stats. Si no sale nada útil, usa el cambio de cartas.
 
 ---
 
-## 4. Ranking (priofast con huecos reservados) [MEDIDO]
+## 4. Ranking [MEDIDO]
 
-Juntando las tres tandas (semillas 701-720 o 901-920, más la confirmación con semillas nuevas
-1001-1020). "MI = PM": Movimiento inicial = Puño Meteoro.
+**Receta de jugador** (la que puede hacer un humano): Movimiento inicial = Puño Meteoro, Repertorio
+**al azar**, huecos reservados, Pañuelo primero. 20 partidas por Pokémon con semillas nuevas (1101-1120,
+`sim/out/v5/human-pf.jsonl`). La columna "bot" es la misma receta pero con el 2.º ataque elegido por el
+bot (Puño Meteoro de Repertorio; 40 partidas de 3 tandas): sirve para ver si el orden se sostiene.
 
-| Pokémon | rareza | leg. | partidas | llegan al 30 | mediana | nivel min 15 | nivel min 30* | derrotados | tope Potencia |
-|---|---|---|---|---|---|---|---|---|---|
-| **Cobalion** | 5 | sí | 40 | **78 %** | 31:35 | 94 | 142 | 7.807 | 0/40 |
-| **Archaludon** | 5 | no | 40 | **75 %** | 31:04 | 96 | 152 | 9.989 | 2/40 |
-| **Kartana** | 4 | no | 40 | 68 % | 31:10 | 102 | 161 | 12.721 | 5/40 |
-| **Dialga** | 5 | sí | 40 | 68 % | 31:04 | 97 | 161 | 10.392 | 2/40 |
-| **Empoleon** (MI = PM) | 4 | no | 40 | 65 % | 31:03 | 96 | 144 | 8.148 | 3/40 |
-| **Gholdengo** | 4 | no | 40 | 60 % | 31:00 | 91 | 135 | 6.796 | 1/40 |
-| **Klinklang** | 4 | no | 40 | 58 % | 30:40 | 100 | 155 | 8.732 | 2/40 |
-| **Lucario** | 4 | no | 40 | 55 % | 30:52 | 101 | 159 | 7.971 | 1/40 |
-| **Revavroom** | 4 | no | 40 | 55 % | 30:45 | 101 | 160 | 9.289 | 2/40 |
-| **Durant** (barato) | 3 | no | 40 | 55 % | 30:51 | 93 | 141 | 6.611 | 2/40 |
-| **Togedemaru** (barato, MI = PM) | 3 | no | 40 | 52 % | 30:39 | 89 | 133 | 4.764 | 0/40 |
-| Registeel | 5 | sí | 40 | 48 % | 26:10 | 100 | 158 | 4.552 | 3/40 |
-| Perrserker | 3 | no | 20 | 45 % | 17:28 | 106 | 182 | 4.668 | 3/20 |
-| Melmetal | 5 | sí | 40 | 40 % | 10:10 | 108 | **194** | 2.379 | **7/40** |
-| Skarmory | 3 | no | 20 | 40 % | 8:53 | 92 | 138 | 1.804 | 0/20 |
-| Pawniard | 2 | no | 40 | 35 % | 8:49 | 96 | 145 | 1.742 | 2/40 |
-| Klang | 3 | no | 20 | 25 % | 9:19 | 101 | 186 | 1.924 | 1/20 |
-| Bisharp | 3 | no | 20 | 20 % | 8:55 | 104 | 172 | 1.802 | 1/20 |
-| Orthworm | 3 | no | 20 | 15 % | 9:10 | 93 | 148 | 1.917 | 0/20 |
+| Pokémon | rareza | leg. | llegan al 30 (jugador) | llegan al 30 (bot) | nivel min 15 | nivel min 30* | derrotados | tope Potencia |
+|---|---|---|---|---|---|---|---|---|
+| **Kartana** | 4 | no | **14/20 (70 %)** | 27/40 | 103 | 181 | 15.072 | 5/20 |
+| **Cobalion** | 5 | sí | **14/20 (70 %)** | 31/40 | 97 | 151 | 8.945 | 0/20 |
+| **Dialga** | 5 | sí | **14/20 (70 %)** | 27/40 | 98 | 164 | 8.658 | 2/20 |
+| **Perrserker** (barato) | 3 | no | **14/20 (70 %)** | 9/20 | 104 | 174 | 14.524 | 2/20 |
+| **Klinklang** | 4 | no | 13/20 (65 %) | 23/40 | 103 | 164 | 10.512 | 1/20 |
+| **Archaludon** | 5 | no | 12/20 (60 %) | 30/40 | 96 | 150 | 7.986 | 3/20 |
+| **Gholdengo** | 4 | no | 12/20 (60 %) | 24/40 | 94 | 148 | 5.880 | 3/20 |
+| **Durant** (barato) | 3 | no | 12/20 (60 %) | 22/40 | 95 | 148 | 7.594 | 2/20 |
+| **Melmetal** | 5 | sí | 11/20 (55 %) | 16/40 | 106 | **189** | 13.500 | **5/20** |
+| **Empoleon** | 4 | no | 11/20 (55 %) | 26/40 | 92 | 137 | 7.234 | 0/20 |
+| **Lucario** | 4 | no | 10/20 (50 %) | 22/40 | 87 | 142 | 3.334 | 1/20 |
+| Togedemaru (barato) | 3 | no | 9/20 (45 %) | 21/40 | 96 | 147 | 2.682 | 0/20 |
+| Revavroom | 4 | no | 5/20 (25 %) | 22/40 | 100 | 169 | 1.910 | 0/20 |
 
-*Nivel mediano en el minuto 30 de las que llegan.
+*Nivel mediano en el minuto 30 de las que llegan. Derrotados: mediana de todas las partidas.
 
-- Con 40 partidas por Pokémon, diferencias de ±10 puntos en "llegan al 30" son ruido. Entre las dos
-  tandas un mismo Pokémon varía bastante (Registeel 12/20 y luego 7/20; Gholdengo 15/20 y luego 9/20). [MEDIDO]
-- **Los Acero puros (Melmetal, Perrserker, Klang) son los que más suben** (nivel 182-194 en el min 30 y
-  más topes de Potencia), por el +20 % del monotipo, pero **se mueren más**: son lentos (velocidad 92-99)
-  o tienen poca Def. Esp. Si te sabes mover mejor que el bot, son la bola de nieve más fuerte. [MEDIDO + CONJETURA]
+Sin medir con la receta de jugador (sólo con la del bot, 20-40 partidas): Registeel 48 %, Skarmory 40 %,
+Pawniard 35 %, Klang 25 %, Bisharp 20 %, Orthworm 15 %.
+
+- En conjunto la receta de jugador va **igual o algo mejor** que la del bot: 151/260 (58 %) al minuto 30,
+  nivel 100 en el 15 y 158 en el 30, 24/260 al tope de Potencia. [MEDIDO]
+- Con 20 partidas, ±3 en "llegan al 30" es ruido normal: Revavroom (5/20 frente a 22/40) o Perrserker
+  (14/20 frente a 9/20) cambian mucho de una tanda a otra. Lo fiable es lo que sale bien en las dos columnas:
+  **Kartana, Cobalion, Dialga, Klinklang, Archaludon, Gholdengo y Durant**. [MEDIDO]
+- **Los Acero puros (Melmetal, Perrserker, Klinklang) son los que más suben** (nivel 164-189 en el min 30,
+  más topes de Potencia) por el +20 % del monotipo. Melmetal y Perrserker son lentos (92-99): en manos de
+  alguien que se mueva mejor que el bot, probablemente son la bola de nieve más fuerte. [MEDIDO + CONJETURA]
 
 ---
 
 ## 5. Fichas
 
-Lo común a todos (y por eso no se repite): **vetos** los automáticos; **ataque principal** Puño
-Meteoro; **grupo**: Puño Meteoro + Danza Espada + Fortaleza y un cuarto miembro; **objeto**: Pañuelo
+Lo común a todos (y por eso no se repite): **Movimiento inicial** Puño Meteoro; **vetos** 3 cualesquiera
+que no sean de la receta (da igual cuáles, §6.1; los automáticos son Maquinación, Agilidad y Sustituto);
+**ataque principal** Puño Meteoro; **grupo**: Puño Meteoro + Danza Espada + Fortaleza y un cuarto miembro; **objeto**: Pañuelo
 Elección en cuanto salga (si no, Garra Rápida o Restos; **nunca** la Cinta Elección); huecos reservados
 hasta tener Danza Espada y Fortaleza. Los minutos son medianas de las partidas que llegan vivas al
 minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 21-32 partidas por Pokémon]
@@ -151,22 +154,18 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
 ### 5.1 Caros
 
 #### Cobalion (638) — el más fiable · rareza 5, legendario
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** Puño Meteoro + Danza Espada + Fortaleza + **Garra Metal** (22 de 32) o Placaje (8).
 - **Hitos:** Danza Espada y Fortaleza en el 0:40; Puño Meteoro evoluciona en el 2:06; Danza al 5 en el
   3:24, Fortaleza al 5 en el 4:36; Potencia n.º 10 en el 13, n.º 20 en el 24.
 - 31 de 40 llegan al minuto 30; nunca llegó al tope de Potencia (sube algo menos que los demás).
 
 #### Archaludon (1018) — el mejor no legendario · rareza 5
-- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Garra Metal** (13 de 30) o **Garra Dragón** (10).
 - **Hitos:** Fortaleza 0:30, Danza Espada 0:40, evolución 2:06, Danza al 5 en el 3:36, Fortaleza al 5 en
   el 4:30, Potencia 10 en el 11:50 y 20 en el 20:40.
-- Pega un 8 % menos que antes con Puño Meteoro (Ataque < At. Esp.), y aun así es de los mejores.
-  **Ojo:** con Movimiento inicial = Puño Meteoro le fue peor (9/20 frente a 16/20 con las mismas semillas). [MEDIDO, 20 parejas]
+- Pega un 8 % menos que antes con Puño Meteoro (Ataque < At. Esp.), y aun así es de los mejores (12/20 y 30/40).
 
 #### Kartana (798) — el que más mata · rareza 4
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Látigo Cepa** (12 de 27) o Placaje (10).
 - **Hitos:** Fortaleza 0:30, Danza Espada 0:40, evolución 2:06, las dos al 5 hacia el 4:00, Potencia 10
   en el 11:30, 20 en el 23:50.
@@ -174,63 +173,66 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
   Def. Esp. muy baja (31): los enemigos especiales le pegan un 25 % más. [CÓDIGO]
 
 #### Dialga (483) · rareza 5, legendario
-- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Garra Metal** (15 de 27).
 - **Hitos:** Danza Espada 0:24, Fortaleza 0:36, evolución 2:18, Potencia 10 en el 11:20, 20 en el 21:30,
   30 en el 27 (11 de 27).
 - Antes era el de más nivel pero moría pronto (7/20); ahora 27 de 40 llegan al 30.
 
-#### Empoleon (395) — con Movimiento inicial · rareza 4
-- **Vetos:** Agilidad, Sustituto, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
+#### Empoleon (395) · rareza 4
 - **Grupo:** + **Torbellino** (9 de 26), Placaje o Garra Metal.
 - **Hitos:** Danza Espada 0:30, Fortaleza 0:36, evolución 1:54, Potencia 10 en el 13, 20 en el 21:40.
-- Con el inicial de serie (Pistola Agua) le fue mal: 6/20. Con Puño Meteoro de inicial, 26/40.
-  [MEDIDO, 20 parejas: ×1,64]
+- Sin empezar con Puño Meteoro le iba mal (6/20 con el inicial de serie): su lista es de las más largas y
+  Puño Meteoro tarda en salir. [MEDIDO, 20 parejas: ×1,64]
 
 #### Gholdengo (1000) · rareza 4
-- **Vetos:** Agilidad, Sustituto, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Garra Metal** (13 de 25) o Lengüetazo (6).
 - **Hitos:** Danza Espada 0:24, Fortaleza 0:30, evolución 2:06, Potencia 10 en el 13.
 - Es el que más pierde con el cambio: Puño Meteoro le pega un 28 % menos (Ataque 1,03 frente a At. Esp.
   1,43). Sigue siendo fiable (60 %) pero mata menos que los demás (6.796). [CÓDIGO + MEDIDO]
 
 #### Klinklang (601) — Acero puro · rareza 4
-- **Vetos:** Maquinación, Agilidad, Sustituto. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Placaje** (13 de 23) o Garra Metal (10).
 - **Hitos:** Danza Espada 0:30, Fortaleza 0:36, evolución 1:54, Potencia 10 en el 13, 20 en el 21.
 - +20 % de daño con Puño Meteoro por ser monotipo. [CÓDIGO]
 
 #### Lucario (448) · rareza 4
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Golpe Kárate** (14 de 22).
 - **Hitos:** Danza Espada y Fortaleza hacia el 0:30, evolución 2:36, Potencia 10 en el 11:30, 20 en el 22,
   30 en el 27 (10 de 22).
 
-#### Revavroom (966) · rareza 4
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
+#### Melmetal (809) — el que más sube · rareza 5, legendario, Acero puro
+- **Grupo:** + **Placaje** (7 de 11) o Garra Metal (3).
+- **Hitos:** Danza Espada 0:18, Fortaleza 0:42, evolución 2:00, Potencia 10 en el 9:48, 20 en el 18:48,
+  30 en el 27 (10 de 11), **40 en el 29 (5 de 11)**. [MEDIDO, 11 partidas de la receta de jugador]
+- Nivel 189 en el min 30 y 13.500 derrotados, pero lento (92): 11/20 y 16/40 llegan al 30.
+
+#### Revavroom (966) · rareza 4 — irregular
 - **Grupo:** + **Garra Metal** (15 de 23).
 - **Hitos:** Fortaleza 0:18, Danza Espada 0:30, evolución 2:12, Potencia 10 en el 11, 20 en el 23.
-- Con Movimiento inicial = Puño Meteoro, peor (8/20 frente a 11/20). [MEDIDO, 20 parejas, ruido]
+- Irregular: 22/40 con la receta del bot y 5/20 con la de jugador. [MEDIDO] No lo recomiendo hasta medirlo más.
 
 ### 5.2 Baratos (rareza 3)
 
+#### Perrserker (863) — barato y el que más sube de los baratos · Acero puro
+- **Grupo:** + **Garra Metal** (5 de 14), Golpe Cuerpo (5) o Placaje (4).
+- **Hitos:** Danza Espada y Fortaleza en el 0:30, evolución 2:06, Potencia 10 en el 10:36, 20 en el 20:24,
+  30 en el 27 (7 de 14), 40 en el 28 (2 de 14). [MEDIDO, 14 partidas de la receta de jugador]
+- 14/20 con la receta de jugador, 9/20 con la del bot: muy irregular (velocidad 99). Nivel 174 en el min 30.
+
 #### Durant (632) — el mejor barato
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
 - **Grupo:** + **Picadura** (9 de 22) o Garra Metal (7).
 - **Hitos:** Danza Espada 0:42, Fortaleza 1:00, evolución 2:18, Danza al 5 en el 4:30, Fortaleza al 5 en
   el 5, Potencia 10 en el 12, 20 en el 22.
 - Velocidad 124: el más rápido de los baratos. 22 de 40 al minuto 30 (8/20 y luego 14/20).
 
-#### Togedemaru (777) — con Movimiento inicial
-- **Vetos:** Maquinación, Agilidad, Disparo Espejo. **Movimiento inicial: Puño Meteoro.**
+#### Togedemaru (777)
 - **Grupo:** + **Placaje** (8 de 21) o Golpe Cuerpo (5).
 - **Hitos:** Danza Espada 0:30, Fortaleza 0:48, evolución 1:54, Potencia 10 en el 11:40.
-- Con el inicial de serie (Impactrueno), 6/20; con Puño Meteoro, 21/40. [MEDIDO, 20 parejas: ×1,67]
+- Sin empezar con Puño Meteoro, 6/20; con él, 21/40 y 9/20. [MEDIDO]
 - Sube algo menos que los demás (133 en el min 30, 4.764 derrotados).
 
 #### Si no tienes ninguno de estos
-- **Perrserker** (rareza 3, Acero puro) y **Pawniard** (rareza 2) con la misma receta: más nivel que
-  Durant, pero un 35-45 % llegan al minuto 30. **Klang, Bisharp y Orthworm** con el bot se mueren antes
+- **Pawniard** (rareza 2) con la misma receta: más nivel que Durant, pero un 35 % llegan al minuto 30. **Klang, Bisharp y Orthworm** con el bot se mueren antes
   del 10 casi siempre (15-25 %). [MEDIDO, 20-40 partidas]
 
 ---
@@ -294,7 +296,7 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
 | Ir sin Pañuelo Elección | con otro objeto en el min 7 llegan al 30 un 30-51 % (con Pañuelo, 72 %) | [MEDIDO, 755 partidas] |
 | Usar Maquinación con Puño Meteoro | no le hace nada: Puño Meteoro es físico | [CÓDIGO] |
 | Elegir Gholdengo o Magnezone "porque pegan mucho" | Puño Meteoro usa el Ataque: Gholdengo ×0,72, Magnezone ×0,76 | [CÓDIGO] |
-| Movimiento inicial = Puño Meteoro con todos | sólo ayuda a Empoleon y Togedemaru; en conjunto ×0,98 | [MEDIDO, 160 parejas] |
+| No comprar Movimiento inicial | Repertorio da el 2.º ataque al azar: Puño Meteoro puede no llegar hasta las cartas | [CÓDIGO] |
 | Jugar Lucha esperando bola de nieve | ya no la hace | [MEDIDO] |
 | Contar con el veneno para la Sentencia | contra los legendarios grandes quita como si tuvieran 10 veces menos vida | [CÓDIGO] |
 

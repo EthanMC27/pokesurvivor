@@ -599,3 +599,37 @@ node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex 638
 
 Tiempos con 14 hilos: una partida de 30 min de Acero con priofast ≈ 1 min de reloj; la criba entera
 ≈ 4 h; la ronda fuerte ≈ 5 h.
+
+## 12. Cooperativo: parejas (sim/party.js, semillas 1201-1220, partida completa) [MEDIDO, 220 partidas]
+
+Todos con su receta (huecos reservados, Movimiento inicial = el 1.º de la prioridad, Pañuelo primero):
+Acero = Puño Meteoro → Danza Espada → Fortaleza; Polteageist = Viento Aciago → Maquinación → Fortaleza;
+Manaphy = Torbellino → Maquinación → Fortaleza; Gengar = Infortunio → Maquinación → Fortaleza; Tentacruel =
+Púas Tóxicas → Torbellino → Fortaleza. Cada bot juega a lo suyo (sin correa: ver FIDELITY, "Cooperativo").
+"Llegan al 30" = queda alguno vivo en el minuto 30. Debajo, cada uno solo en las mismas semillas.
+
+| | llegan al 30 | nivel min 30 | derrotados (equipo) | caídas por jugador | daño por jugador |
+|---|---|---|---|---|---|
+| Cobalion + Archaludon | 15/20 | 117 | 8.132 | 1,6 | 63M / 59M |
+| Cobalion + Polteageist (Viento Aciago) | 18/20 | 94 | 5.977 | 1,7 | 44M / 38M |
+| Cobalion + Manaphy (Torbellino) | 19/20 | 90 | 5.248 | 2,0 | 47M / 25M |
+| Gengar (Infortunio) + Tentacruel (Púas Tóxicas) | 20/20 | 78 | 3.706 | 2,0 | 10M / 6M |
+| Gengar (Infortunio) + Cobalion | 16/20 | 106 | 7.116 | 1,8 | 19M / 58M |
+| solo Cobalion | 14/20 | 156 | 11.994 | 0,75 | 166M |
+| solo Archaludon | 17/20 | 150 | 10.606 | 0,75 | 138M |
+| solo Polteageist | 16/20 | 106 | 3.446 | 0,40 | 47M |
+| solo Manaphy | 18/20 | 85 | 2.869 | 0,45 | 35M |
+| solo Gengar (Infortunio) | 7/20 | 113 | 1.828 | 0,85 | 6M |
+| solo Tentacruel | 17/20 | 81 | 2.392 | 0,40 | 7M |
+
+- **En grupo la bola de nieve es menor**: nivel y experiencia compartidos (÷1,6 con dos) [CÓDIGO], así que
+  cada uno tiene menos cartas; Cobalion llega al 117 en el min 30 en vez de al 156, y el equipo mata
+  menos que Cobalion solo. Se aguanta más porque basta con que quede uno.
+- **Mejor pareja para bola de nieve: dos de Acero** (Cobalion + Archaludon).
+- **Remolino + Puño Meteoro no suma**: con Polteageist o Manaphy, Cobalion hace menos daño (44-47M frente a
+  63M con Archaludon). Hipótesis sin comprobar: el remolino aleja a la horda de Cobalion y los meteoros
+  caen sobre lo que tiene cerca. [MEDIDO + CONJETURA]
+- **Infortunio + estados**: Gengar hace 10M junto a Tentacruel frente a 6M solo, con menos nivel (78 frente a
+  113). Pareja muy segura (20/20) pero lenta. No se ha separado el efecto del Infortunio del de tener
+  compañero (faltaría un compañero sin estados con nivel parecido). [MEDIDO, 20 partidas]
+- Comando: `node sim/partysweep.js --party sim/out/v5/pairs1.json --seeds 1201-1220 --max 1900 --jobs 14 --out sim/out/v5/party1.jsonl`

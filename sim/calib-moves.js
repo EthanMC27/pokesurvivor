@@ -76,7 +76,7 @@ if (!isMainThread) {
     active: () => 0,
     item: cur => cur
   };
-  runOne({ dex: 132, seed, bot, start: id, forceStart: true, maxTime: WARM + secs });
+  runOne({ dex: 132, seed, bot, start: id, forceStart: true, abil: 'none', maxTime: WARM + secs });   // sin habilidad (21-10-2026)
   parentPort.postMessage({ id, lvl, evo, seed, dps: res ? res.dps : 0 });
   return;
 }

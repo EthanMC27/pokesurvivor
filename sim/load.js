@@ -108,15 +108,17 @@ const PATCHES = [
  */
 PATCHES.push(
   { file: /systems\/combat\.js$/, name: 'coop-owner', edits: [
-    { from: '        const crit = isCrit(pl);\n        const k = (p.mtype ? typeK(p.mtype, e) : 1)',
-      to: '        const crit = isCrit(p.owner || pl);\n        const k = (p.mtype ? typeK(p.mtype, e) : 1)', count: 1 },
-    { from: '        pl.dmgDealt += p.dmg * k;', to: '        (p.owner || pl).dmgDealt += p.dmg * k;', count: 1 },
-    { from: '        pl.onDealt(p.dmg * k);', to: '        (p.owner || pl).onDealt(p.dmg * k);', count: 1 },
-    { from: '        if (p.drain) pl.heal(p.drain);', to: '        if (p.drain) (p.owner || pl).heal(p.drain);', count: 1 }
+    // (21-10-2026: con habilidades, el crítico, los estados y abilOut/afterHit también son del dueño del disparo)
+    { from: '        const crit = isCrit(pl), sk = statusK(pl);\n        const k = (p.mtype ? typeK(p.mtype, e) : 1) * G.Stats.taken(e.mon, p.mcat) * (crit ? critMul(pl) : 1) * abilOut(pl, p.src, e);',
+      to: '        const ow = p.owner || pl, crit = isCrit(ow), sk = statusK(ow);\n        const k = (p.mtype ? typeK(p.mtype, e) : 1) * G.Stats.taken(e.mon, p.mcat) * (crit ? critMul(ow) : 1) * abilOut(ow, p.src, e);', count: 1 },
+    { from: '        pl.dmgDealt += p.dmg * k;', to: '        ow.dmgDealt += p.dmg * k;', count: 1 },
+    { from: '        pl.onDealt(p.dmg * k);', to: '        ow.onDealt(p.dmg * k);', count: 1 },
+    { from: '        if (p.drain) pl.heal(p.drain);', to: '        if (p.drain) ow.heal(p.drain);', count: 1 },
+    { from: '        afterHit(pl, e, p.src);', to: '        afterHit(ow, e, p.src);', count: 1 }
   ] },
   { file: /systems\/hazards\.js$/, name: 'coop-hazards', edits: [
-    { from: '        if (pl && !pl.dead && inside(h, pl.x, pl.y, pl.r)) {',
-      to: '        for (const pl of (G.Game.everyone ? G.Game.everyone() : [G.Game.player])) if (pl && !pl.dead && inside(h, pl.x, pl.y, pl.r)) {', count: 1 }
+    { from: '        if (pl && !pl.dead && inside(h, pl.x, pl.y, pl.r) && !(h.boom && pl.abil && pl.abil.damp)) {',
+      to: '        for (const pl of (G.Game.everyone ? G.Game.everyone() : [G.Game.player])) if (pl && !pl.dead && inside(h, pl.x, pl.y, pl.r) && !(h.boom && pl.abil && pl.abil.damp)) {', count: 1 }
   ] },
   { file: /systems\/judgment\.js$/, name: 'coop-touch', edits: [
     { from: '    touch(pl);\n    ember(dt);', to: '    for (const p of (G.Game.everyone ? G.Game.everyone() : [pl])) touch(p);\n    ember(dt);', count: 1 }

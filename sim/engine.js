@@ -65,6 +65,36 @@ function setup(G, ctx, state) {
   G.Camera.resize(1280, 720, 1);
 }
 
+/** Naturaleza (save.pnat), habilidad (save.pabil) y MT (save.ptm) del Pokémon o.dex en el guardado falso. */
+function monSetup(G, o) {
+  const s = G.DB.save, dex = o.dex;
+  const nat = o.nature || 'serious';
+  if (!G.NATURE_BY[nat]) throw new Error('Naturaleza desconocida: ' + nat);
+  (s.pnat = s.pnat || {})[dex] = [nat, 0];
+  const l = G.DEX_ABIL[dex] || [0, 0, 0];
+  let slot = o.abil == null ? 0 : typeof o.abil === 'number' || /^\d$/.test(o.abil) ? +o.abil : l.indexOf(o.abil);
+  if (o.abil !== 'none') {
+    if (!l[slot]) { console.warn(`[sim] habilidad "${o.abil}" no es de ${dex} (${l.join(', ')}): la 1.ª`); slot = 0; }
+    (s.pabil = s.pabil || {})[dex] = [slot, 0];
+  }
+  if (o.tms) (s.ptm = s.ptm || {})[dex] = [].concat(o.tms).filter(id => G.TM_OF(dex).includes(id) || console.warn(`[sim] ${dex} no aprende la MT ${id}`));
+}
+/** Como startRun(): pl.setAbility(G.Mons.abilityOf(dex).id). Con o.abil 'none', ninguna (lo de antes del 21-10). */
+function setAbil(G, pl, o) {
+  if (o.abil === 'none') return;
+  pl.setAbility(G.Mons.abilityOf(pl.mon.dex).id);
+}
+/** 2.º movimiento elegido (mejora 'start2' con Repertorio), como G.startMove2Of; null = al azar. */
+function start2Of(G, o, levels, perks, dex, pl) {
+  const id = o.start2;
+  if (!id) return null;
+  if (!((levels.start2 || 0) >= 1 && perks.startMoves >= 2 && G.startChoices(dex).includes(id) && !pl.hasMove(id))) {
+    console.warn(`[sim] 2.º movimiento inicial "${id}" no válido (¿sin la mejora 'start2', o repetido?): al azar`);
+    return null;
+  }
+  return id;
+}
+
 /**
  * @param o.dex       Pokémon (nº de la Pokédex)
  * @param o.seed      semilla
@@ -76,6 +106,10 @@ function setup(G, ctx, state) {
  * @param o.ban       ids de movimientos vetados (Mejoras → Veto; como mucho los niveles de 'ban')
  * @param o.bind      { idMovimiento: hueco 0-3 } (Mejoras → Atajos)
  * @param o.pickSecond  el bot elige el 2.º movimiento de Repertorio (en el juego es al azar; ver arriba)
+ * @param o.start2    2.º movimiento de Repertorio elegido (mejora 'start2', 21-10-2026; si no, al azar)
+ * @param o.nature    naturaleza (id de G.NATURES; por defecto 'serious', neutra = como antes del 21-10)
+ * @param o.abil      habilidad: hueco 0/1/2, id, o 'none' (sin habilidad, como antes del 21-10). Por defecto, 0
+ * @param o.tms       ids de movimientos aprendidos con MT (salen en las cartas y valen de inicial)
  * @param o.dt        paso del reloj (1/30 por defecto; el juego a 60 FPS va a 1/60)
  * @param o.immortal  no se muere: el daño se apunta en `lives` (vidas máximas que habría perdido)
  * @param o.mortalRifts  (con immortal) dentro de la grieta el daño es real: se puede perder la grieta
@@ -89,8 +123,10 @@ function runOne(o) {
   const state = { pl: null, time: 0, bondAsk: false };
   setup(G, ctx, state);
   const bot = o.bot;
-  const mon = G.DEX_BY[o.dex];
-  if (!mon) throw new Error('No existe el Pokémon ' + o.dex);
+  if (!G.DEX_BY[o.dex]) throw new Error('No existe el Pokémon ' + o.dex);
+  // Naturaleza, habilidad y MT (21-10-2026, ver js/systems/mons.js): como si estuvieran en el guardado.
+  monSetup(G, o);
+  const mon = G.Mons.monFor(o.dex);
 
   let levels = o.upgrades || {};
   if (levels === 'max') { levels = {}; for (const u of G.Upgrades.LIST) levels[u.id] = u.max; }
@@ -106,6 +142,7 @@ function runOne(o) {
   G.World.setBiome(0, true);
 
   const pl = state.pl = new G.Player(mon, perks, false);
+  setAbil(G, pl, o);
   if (o.bind) for (const id in o.bind) if (o.bind[id] != null) pl.bind[id] = o.bind[id];
   // Movimiento inicial (mejora 'start', 19-10-2026): con ella se elige cualquiera de
   // G.startChoices (los suyos sin potenciadores, y el de serie). o.start manda; si no,
@@ -151,8 +188,10 @@ function runOne(o) {
     const pool = G.Moves.poolFor(mon).filter(id => !pl.hasMove(id) && !pl.banned.has(id) && G.Moves.BY_ID[id].kind !== 'buff');
     // Como startRun(): AL AZAR (G.U.pick). Hasta el 20-10-2026 el bot lo elegía (bot.secondMove), cosa que
     // un jugador no puede hacer; eso queda sólo con o.pickSecond (experimentos).
-    let pick = o.pickSecond && bot.secondMove ? bot.secondMove(pool.slice(), api) : null;
-    if (!pool.includes(pick)) pick = pool.length ? G.U.pick(pool) : null;
+    // Con la mejora "Segundo movimiento inicial" (o.start2) se elige, como G.startMove2Of.
+    const pick2 = start2Of(G, o, levels, perks, mon.dex, pl);
+    let pick = pick2 || (o.pickSecond && bot.secondMove ? bot.secondMove(pool.slice(), api) : null);
+    if (!pick2 && !pool.includes(pick)) pick = pool.length ? G.U.pick(pool) : null;
     if (pick) pl.addMove(pick);
     pl.setActive(0);
   }
@@ -331,7 +370,7 @@ function runOne(o) {
               spawned: judgeLog.length, log: judgeLog };
   }
   return {
-    dex: mon.dex, name: mon.name, seed, bot: bot.name || '?',
+    dex: mon.dex, name: mon.name, seed, bot: bot.name || '?', nature: mon.nature, abil: pl.abilId || 'none',
     time: Math.round(state.time), dead: pl.dead, level: pl.level, kills: pl.kills, bosses: pl.bosses,
     dmg: Math.round(pl.dmgDealt), item: pl.item, coins: pl.coins,
     moves: pl.slots.map(g => g.map(m => m.id + ':' + m.lvl + (m.evolved ? '*' : '')).join('+')),
@@ -346,4 +385,4 @@ function runOne(o) {
   };
 }
 
-module.exports = { runOne, DT };
+module.exports = { monSetup, setAbil, start2Of, runOne, DT };

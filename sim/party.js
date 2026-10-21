@@ -19,13 +19,14 @@
  * anfitrión; los altares se gastan para todos al usarlos uno (en el juego cada uno tiene el suyo); el
  * toque de Arceus tiene una sola recarga para todos; las curas y escudos de enemigos, igual que en solitario.
  *
- * runParty({ members: [{ dex, bot, start?, ban?, item? }, ...], seed, upgrades, maxTime, dt, leash })
+ * runParty({ members: [{ dex, bot, start?, ban?, item?, nature?, abil?, tms?, start2? }, ...], seed, upgrades, maxTime, dt, leash })
  *   bot: objeto bot (la misma API que engine.js; api.mates = los demás jugadores).
  *   leash: distancia a partir de la que un bot se acerca a su compañero (por defecto 0 = nada: con 320 caían mucho más).
  *   reviveRun: false = el vivo no va a por el caído. why: apunta de qué cae cada uno (últimos 15 s).
  * Con un solo miembro da la MISMA partida que engine.runOne (sin el cambio de cámara): node sim/party.js --check
  */
 const { load, hole } = require(process.env.SIM_LOADER ? './' + process.env.SIM_LOADER : './load');   // (SIM_LOADER: pruebas)
+const E = require('./engine');                        // monSetup, setAbil, start2Of (21-10-2026)
 
 const DT = 1 / 30;
 
@@ -85,9 +86,13 @@ function runParty(o) {
   const pls = state.players;
   const apis = [];
   for (let k = 0; k < N; k++) {
-    const m = M[k], mon = G.DEX_BY[m.dex];
-    if (!mon) throw new Error('No existe el Pokémon ' + m.dex);
+    const m = M[k];
+    if (!G.DEX_BY[m.dex]) throw new Error('No existe el Pokémon ' + m.dex);
+    // Naturaleza, habilidad y MT como en engine.js (con dos del mismo Pokémon, las del último).
+    E.monSetup(G, m);
+    const mon = G.Mons.monFor(m.dex);
     const pl = new G.Player(mon, perks, false);
+    E.setAbil(G, pl, m);
     pl.x += (k - (N - 1) / 2) * 34;                         // en fila, como al entrar a una arena
     pls.push(pl);
   }
@@ -117,7 +122,7 @@ function runParty(o) {
     const pl = pls[k], mon = pl.mon;
     if (perks.startMoves >= 2) {
       const pool = G.Moves.poolFor(mon).filter(id => !pl.hasMove(id) && !pl.banned.has(id) && G.Moves.BY_ID[id].kind !== 'buff');
-      const pick = pool.length ? G.U.pick(pool) : null;
+      const pick = E.start2Of(G, M[k], levels, perks, mon.dex, pl) || (pool.length ? G.U.pick(pool) : null);
       if (pick) pl.addMove(pick);
       pl.setActive(0);
     }

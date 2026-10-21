@@ -124,5 +124,37 @@ console.log('Inmortal y Sentencia');
   ok(j && j.bosses === j.log.filter(x => x.down != null).length && j.bosses > 0, `Sentencia: se cuentan los vencidos (${j ? j.bosses : 0})`);
 }
 
+console.log('Versión del 21-10-2026: naturaleza, habilidad, MT y 2.º movimiento inicial');
+{
+  // Bot que se guarda el jugador al empezar (init) para mirarlo.
+  const grab = () => { const b = bot(); const box = {}; b.init = api => { box.pl = api.pl; box.G = api.G; }; return [b, box]; };
+  let [b, box] = grab();
+  runOne({ dex: 376, seed: 1, maxTime: 0.1, bot: b, nature: 'adamant' });
+  const base = box.G.DEX_BY[376];
+  ok(Math.abs(box.pl.mon.pa - base.pa * 1.1) < 1e-9 && Math.abs(box.pl.mon.sa - base.sa * 0.9) < 1e-9,
+    'Firme (adamant): Ataque ×1,1 y At. Esp. ×0,9 en una copia (G.DEX_BY sin tocar)');
+  ok(box.pl.abilId === box.G.DEX_ABIL[376][0], `habilidad por defecto: la 1.ª (${box.pl.abilId})`);
+  [b, box] = grab();
+  runOne({ dex: 376, seed: 1, maxTime: 0.1, bot: b, abil: 'none' });
+  ok(box.pl.abil === null && box.pl.mon.nature === 'serious', "abil 'none': sin habilidad; naturaleza por defecto neutra");
+  // Sebo (thick-fat, Snorlax): el Fuego le hace ×0,6 (inMul en Player.hurt).
+  const fire = abil => {
+    const [b2, bx] = grab();
+    runOne({ dex: 143, seed: 1, maxTime: 0.1, bot: b2, abil });
+    const pl = bx.pl; pl.invuln = 0; const h0 = pl.hp; pl.hurt(50, 'fire', false, 'special'); return h0 - pl.hp;
+  };
+  const kf = fire('thick-fat') / fire('none');
+  ok(Math.abs(kf - 0.6) < 0.02, `Sebo: el Fuego hace ×${kf.toFixed(2)} (código: ×0,6)`);
+  // MT: un ataque que no es de sus tipos vale de movimiento inicial (G.startChoices).
+  const { G: G0 } = load(1);
+  const tm = G0.TM_OF(376).find(id => G0.Moves.BY_ID[id] && G0.Moves.BY_ID[id].kind !== 'buff' && !G0.Moves.poolFor(G0.DEX_BY[376], true).includes(id));
+  const rt = runOne({ dex: 376, seed: 1, maxTime: 0.1, bot: bot(), upgrades: { start: 1 }, tms: [tm], start: tm });
+  ok(rt.moves[0].startsWith(tm + ':'), `MT ${tm}: se puede empezar con él`);
+  // 2.º movimiento inicial (mejora start2 con Repertorio).
+  const alt = G0.startChoices(376).find(id => id !== G0.startMoveOf(376));
+  const r2 = runOne({ dex: 376, seed: 1, maxTime: 0.1, bot: bot(), upgrades: { moves: 1, start2: 1 }, start2: alt });
+  ok(r2.moves.some(m => m.startsWith(alt + ':')), `Segundo movimiento inicial: empieza con ${alt}`);
+}
+
 console.log(`\n${fails ? fails + ' FALLOS' : 'Todo bien'} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
 process.exit(fails ? 1 : 0);

@@ -245,3 +245,54 @@ el motor ya daba. El aturdimiento y los empujones son código del juego: no nece
   y casi nunca levanta al compañero caído. Es lo mínimo de un grupo sin coordinarse.
 - Diferencias que quedan: el clima y la cura del Pokémon perdido sólo para el anfitrión; altares
   compartidos; una sola recarga del toque de Arceus.
+
+## Quinta revisión (21-10-2026): merge de upstream hasta ce57853 ("la gran actualización")
+
+### Qué cambió en la lógica del juego [CÓDIGO]
+
+- **Naturaleza** de cada Pokémon (`data/natures.js`, `systems/mons.js`): +10 % a un stat y −10 % a otro
+  (`pa`, `sa`, `df`, `sd`, `spd`; 5 neutras). `G.Mons.monFor(dex)` da una copia con ella aplicada y
+  `startRun` juega con esa copia. La que te toca es fija por cuenta y Pokémon (hash de `save.created` + dex);
+  se cambia con una **Menta** (1.500 monedas, Tienda Kecleon).
+- **Habilidad** (`data/abilities.js`, efectos en `data/ability-fx.js`): una de las 2-3 suyas (la oculta sale
+  1 de cada 20; se cambia con Cápsula Habilidad, 1.500, o la Oculta, 5.000). Ganchos en `Player.hurt`
+  (absorber un tipo, esquivar, ×daño recibido, Robustez), `Player.heal`, `Player.spd`, `Combat.hit` y los
+  disparos (×daño hecho, críticos ×2 de Francotirador, Potencia Bruta quita estados, Dicha los dobla), el
+  contacto, las trampas, las explosiones kamikaze, la lava y los derrotados (Autoestima, Ultraimpulso).
+  Las que no tienen efecto propio dan **+8 % con los ataques de su tipo principal**. Ejemplos que importan:
+  Potencia/Energía Pura +50 % a los físicos; Ultraimpulso/Autoestima +0,5 % por derrota hasta +15 %;
+  Entusiasmo +25 % a los físicos pero 1 de cada 6 sale a ×0,3 (×1,09 de media); Robustez salva de un golpe
+  letal cada 90 s; Pereza (Truant) ×1,35 de daño con ×1,6 de recarga (pierde).
+- **MT** (`data/tms.js`): ataques que no son de sus tipos (`save.ptm`). Salen en sus cartas y valen de
+  Movimiento inicial (`G.Moves.poolFor` y `G.startChoices` los incluyen). 8 MT a la venta cada día.
+- **Segundo movimiento inicial** (mejora `start2`, 400, necesita Repertorio): eliges el 2.º ataque en vez
+  de al azar (`G.startMove2Of`, sin potenciadores, como `startChoices`). **Con esta mejora Repertorio deja
+  de ser al azar.**
+- Cartas: sólo cambia la etiqueta (físico/especial aparte). Kamikazes: su zona lleva `boom` (Humedad).
+- Cooperativo: mirar a un compañero estando caído (sólo cámara; no se simula).
+
+### Cambios en el simulador
+
+1. **`engine.js`**: `o.nature` (por defecto `'serious'`, neutra: los stats de siempre), `o.abil` (hueco
+   0/1/2 o id; **por defecto el hueco 0**, como un jugador sin Cápsula al que le tocó la 1.ª; `'none'` = sin
+   habilidad, lo de antes del 21-10), `o.tms` y `o.start2` (sólo con la mejora `start2` y Repertorio). Se
+   escriben en el guardado falso (`save.pnat/pabil/ptm`) y se usa `G.Mons.monFor` y `pl.setAbility`, como
+   `startRun`. El resultado lleva `nature` y `abil`. `run.js`: `--nature --abil --tms --start2` (o en `--opts`).
+   `party.js` y `partysweep.js`: los mismos campos por miembro.
+2. **`load.js`**: los atajos `coop-owner` y `coop-hazards` se rehicieron sobre el código nuevo (los
+   disparos usan también la habilidad de su dueño; Humedad en las zonas). Selftest: con y sin atajos,
+   idéntica; `party.js --check` ok.
+3. **`calib-moves.js`**: Ditto mide sin habilidad (`abil: 'none'`).
+4. `selftest.js`: naturaleza en una copia, habilidad por defecto, Sebo ×0,6 al Fuego, MT como inicial y
+   Segundo movimiento inicial.
+
+### Sin revisar a fondo (pendiente)
+
+- **Los bots no saben de habilidades.** `pro-a` predice el daño que recibe sin `inMul`, esquivas,
+  absorciones ni Robustez (va de prudente), y `bots/cards.js` no valora las habilidades al elegir cartas ni
+  la naturaleza más allá de lo que ya lee de `pl.mon` (que sí la lleva). Tampoco sabe de Levitación (agua y
+  trampas) ni de Humedad.
+- Ninguna medida anterior al 21-10 tiene habilidad: comparar con ellas exige `--abil none`.
+- `move-dps.json` no cambia (ningún ataque cambió en `moves.js`), pero sus números no incluyen habilidades.
+- La naturaleza "real" de cada cuenta depende de `save.created`: el simulador no la reproduce (usa la que
+  se le diga).

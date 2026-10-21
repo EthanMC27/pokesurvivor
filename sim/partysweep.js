@@ -17,7 +17,8 @@ if (!isMainThread) {
   const { G } = load(1);
   parentPort.on('message', job => {
     try {
-      const members = job.members.map(m => ({ dex: m.dex, bot: best(m.opts || {}), ban: m.ban || best.bans(m.dex, G, m.opts || {}), start: m.start }));
+      const members = job.members.map(m => ({ dex: m.dex, bot: best(m.opts || {}), ban: m.ban || best.bans(m.dex, G, m.opts || {}), start: m.start,
+        nature: m.nature, abil: m.abil, tms: m.tms, start2: m.start2, item: m.item }));
       const r = runParty(Object.assign({ members, seed: job.seed, upgrades: 'max', maxTime: job.max }, job.popts || {}));
       r.party = job.name;
       parentPort.postMessage(r);

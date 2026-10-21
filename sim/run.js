@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* Uso: node sim/run.js --dex 94 --bot spacer --seeds 1-20 [--upgrades max] [--max 2700] [--jobs 8] [--json out.json]
  *        [--dt 1/60] [--ban id1,id2 | --ban auto] [--bind '{"shadow-ball":0}'] [--opts '{...}']
+ *        [--nature adamant] [--abil 0|1|2|id|none] [--tms id1,id2] [--start2 id]
  *        [--immortal [--mortal-rifts] [--mortal-judge]] [--quiet] [--table]
  *
  *   --dex 4,94,68     varios Pokémon: se lanzan todos y se resume cada uno (tabla).
@@ -25,10 +26,12 @@ function runJob(job) {
   const { runOne } = require('./engine');
   // Bot de cero en cada partida (por si guarda algo a nivel de módulo).
   for (const k of Object.keys(require.cache)) if (k.startsWith(BOTS)) delete require.cache[k];
-  const mk = require(path.join(BOTS, job.bot));
+  const mk = require(path.join(BOTS, job.bot)), bo = job.botOpts || {};
   return runOne({ dex: job.dex, seed: job.seed, bot: mk(job.botOpts || {}), upgrades: job.upgrades, maxTime: job.maxTime, start: job.start, item: job.item,
                   dt: job.dt, ban: job.ban, bind: job.bind, immortal: job.immortal, mortalRifts: job.mortalRifts, mortalJudge: job.mortalJudge,
-                  pickSecond: !!(job.botOpts && job.botOpts.pickSecond) });   // --opts '{"pickSecond":true}': el bot elige Repertorio
+                  pickSecond: !!(job.botOpts && job.botOpts.pickSecond),
+                  // (21-10-2026) naturaleza, habilidad, MT y 2.º inicial: --nature/--abil/--tms/--start2 o en --opts
+                  nature: job.nature || bo.nature, abil: job.abil != null ? job.abil : bo.abil, tms: job.tms || bo.tms, start2: job.start2 || bo.start2 });   // --opts '{"pickSecond":true}': el bot elige Repertorio
 }
 
 if (!isMainThread) {
@@ -152,7 +155,8 @@ if (require.main === module) {
     for (const seed of seeds) jobs.push({ dex, seed, bot, upgrades, maxTime: +a.max || 2700, start: a.start, item: a.item,
       botOpts: a.opts ? JSON.parse(a.opts) : {},
       dt: a.dt ? (String(a.dt).includes('/') ? 1 / +String(a.dt).split('/')[1] : +a.dt) : undefined,
-      ban, bind: a.bind ? JSON.parse(a.bind) : undefined, immortal: !!a.immortal, mortalRifts: !!a['mortal-rifts'], mortalJudge: !!a['mortal-judge'] });
+      ban, bind: a.bind ? JSON.parse(a.bind) : undefined, immortal: !!a.immortal, mortalRifts: !!a['mortal-rifts'], mortalJudge: !!a['mortal-judge'],
+      nature: a.nature, abil: a.abil, tms: a.tms ? String(a.tms).split(',') : undefined, start2: a.start2 });
   }
   const t0 = Date.now();
   const line = r => r.error ? 'ERROR ' + r.error.split('\n').slice(0, 3).join(' | ')

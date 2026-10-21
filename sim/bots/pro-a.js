@@ -83,6 +83,8 @@ function loadCards(opts) {
   if (opts.cards === 'v1') return tryLoad('cards-v1');
   // 'v2f': la v2 congelada (cards-v2-frozen.js), para medir cambios del movimiento.
   if (opts.cards === 'v2f') return tryLoad('cards-v2-frozen');
+  // 'v4f': cards.js del 21-10-2026, sin habilidades (cards-v4-frozen.js).
+  if (opts.cards === 'v4f') return tryLoad('cards-v4-frozen');
   return tryLoad('cards') || tryLoad('cards-v1');
 }
 
@@ -162,6 +164,27 @@ const T = [0.1, 0.2, 0.3, 0.42, 0.56, 0.72, 0.9, 1.1, 1.3];
 const NT = T.length;
 const BAND_K = [4, 6, NT - 1], BAND_END = [NT - 1];
 const TW = T.map(t => t < 0.35 ? 1 : Math.max(0.45, 1 - (t - 0.35) * 0.55));
+
+/**
+ * (22-10-2026) × al daño que de verdad recibe (Player.hurt): su defensa de esa categoría
+ * (G.Stats.taken) y la habilidad: absorbe ese tipo (0), Humedad con los kamikazes (0), × de inMul
+ * y lo que esquiva de media (dodge). Todo sin números aleatorios.
+ * APAGADO por defecto (opts.inK): en 80 parejas (sim/out/v6/ab-*.jsonl) llegó al minuto 20 en 15
+ * frente a 24 del bot sin él. El resto de pro-a está ajustado con el modelo de siempre.
+ */
+function inK(G, pl, type, cat, boom) {
+  let k = G && G.Stats && G.Stats.taken ? G.Stats.taken(pl.mon, cat) : 1;
+  const a = pl.abil;
+  if (!a) return k;
+  if (boom && a.damp) return 0;
+  if (type && a.absorb === type) return 0;
+  const c = cat === 'physical' ? 'p' : cat === 'special' ? 's' : '';
+  try {
+    if (a.inMul) k *= a.inMul(pl, type, c);
+    if (a.dodge) k *= 1 - a.dodge(pl, type, c);
+  } catch (e) {}
+  return k;
+}
 
 module.exports = (opts = {}) => {
   const P = Object.assign({
@@ -560,7 +583,7 @@ module.exports = (opts = {}) => {
       // ¿Puede llegar a tocarte en el horizonte? (si no, sólo cuenta para el cerco)
       const fast = e.boss ? 330 / 0.32 * 0.4 : e.behavior === 'charger' ? es * 3.4 * 0.42 / T[NT - 1] + es : es;
       const can = d - e.r - pl.r < (fast + spd) * T[NT - 1] + 30;
-      e._p = { spd: es, dmg: e.dmg * tk * (1 - pl.reduction) * meleeK, d, can };
+      e._p = { spd: es, dmg: e.dmg * tk * (1 - pl.reduction) * meleeK * (opts.inK ? inK(G, pl, e.atkType, e.cat) : 1), d, can };
       near.push(e);
     }
     const bosses = near.filter(e => e.boss && e._p.can);
@@ -570,7 +593,7 @@ module.exports = (opts = {}) => {
       if (p.friendly) continue;
       if (Math.abs(p.x - pl.x) > 420 || Math.abs(p.y - pl.y) > 420) continue;
       const tk = p.mtype ? G.Types.mult(p.mtype, pl.mon.types) * G.Weather.mult(p.mtype) : 1;
-      shots.push({ p, dmg: p.dmg * tk * (1 - pl.reduction) * meleeK, left: p.life - p.t });
+      shots.push({ p, dmg: p.dmg * tk * (1 - pl.reduction) * meleeK * (opts.inK ? inK(G, pl, p.mtype, p.cat) : 1), left: p.life - p.t });
     }
     const hazards = G.Hazards.all.filter(h => !h.hit);
     const traps = W.specialsNear(pl.x, pl.y, 260).filter(s => s.type === 'trap' && !s.broken);
@@ -850,7 +873,7 @@ module.exports = (opts = {}) => {
           if (k0 < 0) { const f = Math.max(0, left / T[0]); hx = pl.x + (PX[0] - pl.x) * f; hy = pl.y + (PY[0] - pl.y) * f; }
           else { const f = (left - T[k0]) / (T[k1] - T[k0]); hx = PX[k0] + (PX[k1] - PX[k0]) * f; hy = PY[k0] + (PY[k1] - PY[k0]) * f; }
         }
-        const raw = h.pct ? Math.max(h.dmg, pl.maxHp * h.pct) : h.dmg * (h.pure ? 1 : (1 - pl.reduction) * meleeK * (h.type ? G.Types.mult(h.type, pl.mon.types) * G.Weather.mult(h.type) : 1));
+        const raw = h.pct ? Math.max(h.dmg, pl.maxHp * h.pct) : h.dmg * (h.pure ? 1 : (1 - pl.reduction) * meleeK * (h.type ? G.Types.mult(h.type, pl.mon.types) * G.Weather.mult(h.type) : 1) * (opts.inK ? inK(G, pl, h.type, h.cat, h.boom) : 1));
         const dep = depth(h, hx, hy, pl.r);
         if (dep > -8) {
           const w = dep > 0 ? 1 + Math.min(1, dep / 30) * 0.3 : 0.35 * (8 + dep) / 8;

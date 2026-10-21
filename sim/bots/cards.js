@@ -121,7 +121,19 @@ module.exports = (opts = {}) => {
   function atkOf(m, P) {
     const mon = P.mon;
     if (!mon || !G || !G.Stats) return P.atk;
-    return P.atk * G.Stats.fit(mon, m.cat) * (mon.types.length === 1 && m.type === mon.types[0] ? 1.2 : 1);
+    return P.atk * G.Stats.fit(mon, m.cat) * (mon.types.length === 1 && m.type === mon.types[0] ? 1.2 : 1) * abilK(m, P);
+  }
+  /**
+   * (22-10-2026) × al daño de `m` por la habilidad (data/ability-fx.js, gancho out) con el estado de
+   * ahora (vida, derrotados de Ultraimpulso...). Sin enemigo: lo que depende de él (Cromolente,
+   * Cálculo Final, Rompemoldes...) cuenta ×1. Entusiasmo usa Math.random dentro: se pone su media
+   * a mano para no gastar números aleatorios del juego.
+   */
+  function abilK(m, P) {
+    const pl = P.pl, a = pl && pl.abil;
+    if (!a || !a.out) return 1;
+    if (pl.abilId === 'hustle') return m.cat === 'physical' ? 1.25 * 5 / 6 + 0.3 / 6 : 1;
+    try { const k = a.out(pl, m, null); return k > 0 ? k : 1; } catch (e) { return 1; }
   }
   function formula(m, P) {
     if (m.kind === 'buff') return 0;
@@ -254,7 +266,7 @@ module.exports = (opts = {}) => {
     return {
       atk: pl.baseAtk * pl.atkMul, mon: pl.mon, cdMul: pl.cdMul, maxHp: pl.maxHp, hp: pl.hp, red: pl.dmgReduce,
       regen: pl.regenFlat + (pl.item === 'shellbell' ? 3 : 0) - (pl.item === 'lifeorb' ? lifeOrbDrain(pl, pl.activeGroup()) : 0),
-      level: pl.level, min: (time || 0) / 60, crit: pl.critChance || 0
+      level: pl.level, min: (time || 0) / 60, crit: pl.critChance || 0, pl     // pl: para la habilidad (abilK)
     };
   }
   function lifeOrbDrain(pl, g) {

@@ -72,7 +72,8 @@ function monSetup(G, o) {
   if (!G.NATURE_BY[nat]) throw new Error('Naturaleza desconocida: ' + nat);
   (s.pnat = s.pnat || {})[dex] = [nat, 0];
   const l = G.DEX_ABIL[dex] || [0, 0, 0];
-  let slot = o.abil == null ? 0 : typeof o.abil === 'number' || /^\d$/.test(o.abil) ? +o.abil : l.indexOf(o.abil);
+  // 'best' / 'best-h': la que parece mejor (sim/abilpick.js; sin o con la oculta).
+  let slot = o.abil === 'best' || o.abil === 'best-h' ? require('./abilpick').pick(G, dex, o.abil === 'best-h') : o.abil == null ? 0 : typeof o.abil === 'number' || /^\d$/.test(o.abil) ? +o.abil : l.indexOf(o.abil);
   if (o.abil !== 'none') {
     if (!l[slot]) { console.warn(`[sim] habilidad "${o.abil}" no es de ${dex} (${l.join(', ')}): la 1.ª`); slot = 0; }
     (s.pabil = s.pabil || {})[dex] = [slot, 0];
@@ -108,7 +109,7 @@ function start2Of(G, o, levels, perks, dex, pl) {
  * @param o.pickSecond  el bot elige el 2.º movimiento de Repertorio (en el juego es al azar; ver arriba)
  * @param o.start2    2.º movimiento de Repertorio elegido (mejora 'start2', 21-10-2026; si no, al azar)
  * @param o.nature    naturaleza (id de G.NATURES; por defecto 'serious', neutra = como antes del 21-10)
- * @param o.abil      habilidad: hueco 0/1/2, id, o 'none' (sin habilidad, como antes del 21-10). Por defecto, 0
+ * @param o.abil      habilidad: hueco 0/1/2, id, 'best'/'best-h' (abilpick.js) o 'none' (sin habilidad, como antes del 21-10). Por defecto, 0
  * @param o.tms       ids de movimientos aprendidos con MT (salen en las cartas y valen de inicial)
  * @param o.dt        paso del reloj (1/30 por defecto; el juego a 60 FPS va a 1/60)
  * @param o.immortal  no se muere: el daño se apunta en `lives` (vidas máximas que habría perdido)

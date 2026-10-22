@@ -296,3 +296,16 @@ el motor ya daba. El aturdimiento y los empujones son código del juego: no nece
 - `move-dps.json` no cambia (ningún ataque cambió en `moves.js`), pero sus números no incluyen habilidades.
 - La naturaleza "real" de cada cuenta depende de `save.created`: el simulador no la reproduce (usa la que
   se le diga).
+
+### Añadido el 22-10-2026
+
+- **Calibración**: `calib-moves.js` con 4 ataques × 3 semillas da exactamente lo mismo con el código de antes
+  del merge (1b55950) y el de ahora: `move-dps.json` sigue valiendo (ningún ataque cambió). [MEDIDO]
+- **Bot**: `cards.js` multiplica el daño de cada ataque por la habilidad (`abilK`, gancho `out` con el estado
+  de ahora; Entusiasmo con su media, sin gastar números aleatorios): neutro en 80 parejas. `pro-a.js` tiene
+  `inK` (defensa por categoría + habilidad al predecir golpes) **apagado** (`opts.inK`): en 80 parejas llegó al
+  minuto 20 en 15 frente a 24. Congelados: `best-pre22` (el de ayer), `best-c22` (= best actual).
+- `o.abil: 'best' | 'best-h'` (`sim/abilpick.js`): la habilidad que parece mejor con una nota fija por
+  habilidad [CONJETURA para ordenar la criba; lo importante se midió hueco a hueco en `RESULTS-v6.md` §6].
+- **Determinismo**: tras un corte de corriente, dos colas hicieron las mismas 40 partidas: idénticas.
+- Sigue sin modelar en el bot: esquivas, absorciones, Robustez, Levitación (agua y trampas) y Humedad.

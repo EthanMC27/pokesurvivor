@@ -1,12 +1,12 @@
-# Guía de bola de nieve (versión del juego del 19-10-2026)
+# Guía de bola de nieve (versión del juego del 21-10-2026)
 
 Guía para un jugador **humano** que quiere ganar matando mucho y subiendo mucho de nivel, sin
 quedarse sólo en huir. Condición: llegar al minuto 30 en la mitad de las partidas o más, porque
 morir pronto también corta la bola de nieve.
 
 Escenario de todas las pruebas: tienda de Mejoras al máximo (incluida **Movimiento inicial**),
-3 vetos automáticos y el mejor bot del simulador (`--bot best`). Tablas completas y método:
-`sim/RESULTS-v5.md`. Cada afirmación lleva una etiqueta:
+3 vetos automáticos y el mejor bot del simulador (`--bot best`), cada Pokémon con su habilidad.
+Tablas completas y método: `sim/RESULTS-v6.md` (y `RESULTS-v5.md` para lo anterior). Etiquetas:
 
 - **[MEDIDO]**: sale de partidas simuladas; se dice cuántas.
 - **[CÓDIGO]**: sale de las reglas del juego (`js/`), sin azar.
@@ -19,36 +19,36 @@ El bot no juega como una persona: los números sirven para **comparar** builds, 
 ## 1. Resumen en 30 segundos
 
 1. La mejor bola de nieve sigue siendo un **Pokémon de Acero con Puño Meteoro evolucionado**,
-   fusionado con **Danza Espada y Fortaleza**, y el **Pañuelo Elección** en cuanto salga. [MEDIDO, 660 partidas]
-2. **Novedad importante: deja huecos libres.** No aprendas ningún otro ataque hasta tener Danza Espada
-   y Fortaleza. Con los 38 ataques nuevos, si llenas los 4 huecos en el primer minuto, Danza Espada
-   ya no te sale hasta el primer vínculo. Sin esto la build va mucho peor. [MEDIDO + CÓDIGO]
-3. Los más fiables: **Kartana, Cobalion y Dialga** (70 % llegan al minuto 30), **Klinklang, Archaludon,
-   Gholdengo, Melmetal, Empoleon y Lucario** (50-65 %). Baratos (rareza 3): **Perrserker y Durant** (60-70 %).
-   [MEDIDO, 20 partidas con la receta de jugador + 20-40 con la del bot]
-4. Nivel típico: ~95-100 en el minuto 15 y ~140-160 en el 30, con 7.000-12.000 derrotados. El tope de
-   40 Potencias llega poco: en 1 de cada 20 partidas. [MEDIDO]
-5. **Movimiento inicial: Puño Meteoro**, con todos. Repertorio te da el segundo ataque **al azar**
-   (`startRun`: `G.U.pick`) [CÓDIGO]: sin la mejora de Movimiento inicial no hay forma segura de empezar con él.
-   (Las pruebas anteriores dejaban al bot elegir el de Repertorio; ver §4 y `FIDELITY.md`, cuarta revisión.)
-6. Ya **no** hacen bola de nieve: Lucha (Golpe Kárate + Esfera Aural, ni Patada Giro), Dragón (Garra
-   Dragón) ni Roca (Avalancha, que sube de nivel pero muere pronto). Agua y Fantasma con Maquinación
-   aguantan muchísimo pero suben poco. [MEDIDO]
+   fusionado con **Danza Espada y Fortaleza**, y el **Pañuelo Elección** en cuanto salga. Con la
+   actualización del 21-10 va igual o algo mejor: 63 % llegan al minuto 30 (v5: 58 %). [MEDIDO, 160 partidas]
+2. **Deja huecos libres**: ningún ataque nuevo hasta tener Danza Espada y Fortaleza (con 4 huecos llenos ya
+   no salen). [MEDIDO + CÓDIGO]
+3. Los más fiables ahora: **Archaludon (25/30), Kartana (23/30), Lucario (23/30), Dialga (22/30) y
+   Revavroom (21/30)**. Kartana es el que más mata (~14.000) y más veces llega al tope de Potencia. [MEDIDO, 30 cada uno]
+4. **Habilidad y naturaleza importan poco** con esta receta: casi todas las pruebas caben en el ruido. Lo
+   único claro: Lucario con **Impasible** (9/10) mejor que con Fuerza Mental (5/10). No gastes en Cápsulas
+   Ocultas ni en Mentas por esta receta. [MEDIDO, 10 por fila]
+5. **No aprendas MT** para esta receta: cada una entra en tu lista de ataques y hace que salgan menos Danza
+   Espada y Fortaleza. [CÓDIGO]
+6. **Movimiento inicial: Puño Meteoro.** El 2.º (Repertorio) puede ser al azar o elegido con la mejora nueva
+   "Segundo movimiento inicial": no se nota la diferencia. [MEDIDO, 30 partidas con Lucario]
+7. Fuera del Acero, lo mejor es **Spectrier** (rareza 5, banner de Galar) con **Bola Sombra + Maquinación +
+   Fortaleza** reservando huecos: 18/20 llegan al 30, nivel 132 y ~6.400 derrotados (la mitad que el Acero).
+   Hiperrayo + Maquinación no hace bola de nieve. [MEDIDO, 20 y 80]
 
 ---
 
-## 2. Qué ha cambiado respecto a la guía anterior
+## 2. Qué ha cambiado (21-10-2026)
 
-| antes | ahora | por qué |
+| novedad | efecto en la receta | etiqueta |
 |---|---|---|
-| priofast: Puño Meteoro + Danza Espada + Fortaleza + Pañuelo, ~69 % al minuto 30 | lo mismo **sin reservar huecos**: 42 %; **reservando**: 55 % (×1,50 frente al bot normal) | con más ataques en la lista se llenan los huecos pronto y con 4 huecos llenos no salen ataques nuevos [MEDIDO, 480 partidas; CÓDIGO] |
-| nivel ~100 en el min 15, 150-230 en el 30 | ~100 en el min 15 (igual), ~150 en el 30 | más muertes en el muro del minuto 6-12 y menos cartas por minuto pasado el 20 [MEDIDO] |
-| tope de Potencia en ~25 % de las partidas | ~5 % | lo mismo: el final es más lento [MEDIDO] |
-| Gholdengo y Magnezone pegaban con su At. Esp. | Puño Meteoro es **físico**: Gholdengo pega un 28 % menos, Magnezone un 24 % | Ataque y At. Esp. separados [CÓDIGO] |
-| — | los **Acero puros** pegan +20 % con Puño Meteoro (Klinklang, Melmetal, Registeel, Perrserker, Klang, Orthworm) | monotipos +20 % [CÓDIGO]; sube el nivel (Melmetal 194 en el min 30) pero no el aguante |
-| Lucha con Golpe Kárate + Esfera Aural hacía bola de nieve "a medias" | ya no: nivel 43 en el min 15 | Esfera Aural es especial y Danza Espada ya no la sube [CÓDIGO + MEDIDO] |
-| el veneno era lo que mejor escalaba al final | fuera de la Sentencia, igual; **en la Sentencia ya no mata legendarios gigantes** | % de vida "efectiva" con raíz por encima de 60.000 [CÓDIGO] |
-| Pañuelo Elección: la clave | sigue siéndolo: 72 % llegan al 30 con el Pañuelo en el min 7, frente a 30-51 % con otro objeto | [MEDIDO, 755 partidas] |
+| Naturaleza (±10 % a dos stats; Menta 1.500) | +10 % de Ataque = +10 % de daño de Puño Meteoro; en partidas, dentro del ruido (Kartana neutra 9/10, Firme 7/10, Alegre 10/10) | [CÓDIGO + MEDIDO, 30] |
+| Habilidad (efectos reales; Cápsula 1.500, Oculta 5.000) | Ultraimpulso (Kartana, Celesteela) +15 % de daño en cuanto llevas 30 derrotados; el resto, poco | [CÓDIGO + MEDIDO] |
+| MT (8 al día en la Tienda Kecleon) | diluyen las cartas: no conviene | [CÓDIGO] |
+| Segundo movimiento inicial (400) | no se nota con esta receta | [MEDIDO, 30] |
+| Ataques, cartas, objetos, enemigos | sin cambios: la tabla de daño sale idéntica | [CÓDIGO + MEDIDO] |
+
+(Lo que cambió el 19-10-2026, físico/especial y los 38 ataques nuevos, sigue igual: ver `RESULTS-v5.md`.)
 
 ---
 
@@ -105,44 +105,44 @@ Meteoro o stats. Si no sale nada útil, usa el cambio de cartas.
 
 ## 4. Ranking [MEDIDO]
 
-**Receta de jugador** (la que puede hacer un humano): Movimiento inicial = Puño Meteoro, Repertorio
-**al azar**, huecos reservados, Pañuelo primero. 20 partidas por Pokémon con semillas nuevas (1101-1120,
-`sim/out/v5/human-pf.jsonl`). La columna "bot" es la misma receta pero con el 2.º ataque elegido por el
-bot (Puño Meteoro de Repertorio; 40 partidas de 3 tandas): sirve para ver si el orden se sostiene.
+**Receta de jugador**: Movimiento inicial = Puño Meteoro, Repertorio **al azar**, huecos reservados, Pañuelo
+primero, la mejor habilidad no oculta y naturaleza neutra. 10 semillas (3101-3110) para todos y 20 más
+(3301-3320) para los 8 mejores (`sim/out/v6/steel.jsonl`, `conf.jsonl`).
 
-| Pokémon | rareza | leg. | llegan al 30 (jugador) | llegan al 30 (bot) | nivel min 15 | nivel min 30* | derrotados | tope Potencia |
-|---|---|---|---|---|---|---|---|---|
-| **Kartana** | 4 | no | **14/20 (70 %)** | 27/40 | 103 | 181 | 15.072 | 5/20 |
-| **Cobalion** | 5 | sí | **14/20 (70 %)** | 31/40 | 97 | 151 | 8.945 | 0/20 |
-| **Dialga** | 5 | sí | **14/20 (70 %)** | 27/40 | 98 | 164 | 8.658 | 2/20 |
-| **Perrserker** (barato) | 3 | no | **14/20 (70 %)** | 9/20 | 104 | 174 | 14.524 | 2/20 |
-| **Klinklang** | 4 | no | 13/20 (65 %) | 23/40 | 103 | 164 | 10.512 | 1/20 |
-| **Archaludon** | 5 | no | 12/20 (60 %) | 30/40 | 96 | 150 | 7.986 | 3/20 |
-| **Gholdengo** | 4 | no | 12/20 (60 %) | 24/40 | 94 | 148 | 5.880 | 3/20 |
-| **Durant** (barato) | 3 | no | 12/20 (60 %) | 22/40 | 95 | 148 | 7.594 | 2/20 |
-| **Melmetal** | 5 | sí | 11/20 (55 %) | 16/40 | 106 | **189** | 13.500 | **5/20** |
-| **Empoleon** | 4 | no | 11/20 (55 %) | 26/40 | 92 | 137 | 7.234 | 0/20 |
-| **Lucario** | 4 | no | 10/20 (50 %) | 22/40 | 87 | 142 | 3.334 | 1/20 |
-| Togedemaru (barato) | 3 | no | 9/20 (45 %) | 21/40 | 96 | 147 | 2.682 | 0/20 |
-| Revavroom | 4 | no | 5/20 (25 %) | 22/40 | 100 | 169 | 1.910 | 0/20 |
+| Pokémon | rareza | habilidad | llegan al 30 | nivel min 15 | nivel min 30* | derrotados | tope Potencia |
+|---|---|---|---|---|---|---|---|
+| **Archaludon** | 5 | Robustez | **25/30** | 98 | 160 | 11.968 | 4/30 |
+| **Kartana** | 4 | Ultraimpulso | **23/30** | 103 | **177** | **13.893** | **7/30** |
+| **Lucario** | 4 | Impasible | **23/30** | 100 | 149 | 9.693 | 1/30 |
+| **Dialga** | 5 | Presión | 22/30 | 103 | 159 | 12.122 | 3/30 |
+| **Revavroom** | 4 | Funda | 21/30 | 103 | 172 | 13.427 | 5/30 |
+| Cobalion | 5 | Justiciero | 20/30 | 95 | 154 | 10.343 | 1/30 |
+| Magearna | 5 | Coránima | 16/30 | 106 | 181 | 11.358 | 4/30 |
+| Melmetal | 5 | Puño Férreo | 13/30 | 107 | 183 | 2.563 | 6/30 |
+| Togedemaru (barato) | 3 | Punta Acero | 8/10 | 96 | 148 | 9.110 | 1/10 |
+| Empoleon | 4 | Torrente | 7/10 | 84 | 129 | 6.543 | 2/10 |
+| Gholdengo | 4 | Cuerpo Áureo | 6/10 | 99 | 156 | 9.036 | 0/10 |
+| Klinklang | 4 | Más | 5/10 | 106 | 175 | 12.214 | 1/10 |
+| Celesteela | 4 | Ultraimpulso | 5/10 | 97 | 155 | 10.244 | 1/10 |
+| Perrserker (barato) | 3 | Garra Dura | 5/10 | 105 | 165 | 7.712 | 2/10 |
+| Genesect | 5 | Descarga | 4/10 | 105 | 169 | 2.181 | 1/10 |
+| Durant (barato) | 3 | Entusiasmo | 2/10 | 79 | 190 | 2.613 | 0/10 |
 
 *Nivel mediano en el minuto 30 de las que llegan. Derrotados: mediana de todas las partidas.
 
-Sin medir con la receta de jugador (sólo con la del bot, 20-40 partidas): Registeel 48 %, Skarmory 40 %,
-Pawniard 35 %, Klang 25 %, Bisharp 20 %, Orthworm 15 %.
-
-- En conjunto la receta de jugador va **igual o algo mejor** que la del bot: 151/260 (58 %) al minuto 30,
-  nivel 100 en el 15 y 158 en el 30, 24/260 al tope de Potencia. [MEDIDO]
-- Con 20 partidas, ±3 en "llegan al 30" es ruido normal: Revavroom (5/20 frente a 22/40) o Perrserker
-  (14/20 frente a 9/20) cambian mucho de una tanda a otra. Lo fiable es lo que sale bien en las dos columnas:
-  **Kartana, Cobalion, Dialga, Klinklang, Archaludon, Gholdengo y Durant**. [MEDIDO]
-- **Los Acero puros (Melmetal, Perrserker, Klinklang) son los que más suben** (nivel 164-189 en el min 30,
-  más topes de Potencia) por el +20 % del monotipo. Melmetal y Perrserker son lentos (92-99): en manos de
-  alguien que se mueva mejor que el bot, probablemente son la bola de nieve más fuerte. [MEDIDO + CONJETURA]
+- Con 10 partidas, ±3 en "llegan al 30" es ruido; con 30, ±5. Fiables en las dos tandas: **Archaludon,
+  Kartana, Lucario, Dialga y Revavroom**. [MEDIDO]
+- Cambios respecto a la v5: Revavroom pasa de irregular a fiable; Durant y Perrserker bajan (2/10 y 5/10,
+  dentro de lo que ya eran irregulares); Melmetal sigue subiendo mucho y muriendo mucho. [MEDIDO]
+- Baratos (rareza 3): el mejor ahora es **Togedemaru** (8/10). [MEDIDO, 10]
 
 ---
 
 ## 5. Fichas
+
+(Grupos e hitos medidos en la v5; la actualización del 21-10 no cambia ataques ni cartas [CÓDIGO]. La
+habilidad recomendada es la de la tabla del §4; en las pruebas de habilidad de `RESULTS-v6.md` §6 sólo
+Lucario sale claramente mejor con una, **Impasible**.)
 
 Lo común a todos (y por eso no se repite): **Movimiento inicial** Puño Meteoro; **vetos** 3 cualesquiera
 que no sean de la receta (da igual cuáles, §6.1; los automáticos son Maquinación, Agilidad y Sustituto);
@@ -268,6 +268,21 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
 
 ## 7. Alternativas que no son de Acero
 
+**Nuevo (21-10-2026)** [MEDIDO, 20 partidas cada una, semillas 3301-3320, `RESULTS-v6.md` §7]:
+
+| build | ejemplo | llegan al 30 | nivel min 15 / 30 | derrotados | ¿bola de nieve? |
+|---|---|---|---|---|---|
+| **Fantasma: Bola Sombra + Maquinación + Fortaleza, reservando** | **Spectrier** (Relincho Negro) | **18/20** | 84 / 132 | **6.416** | **sí, a la mitad que el Acero** |
+| Fantasma: Viento Aciago + Maquinación + Fortaleza | Spectrier / Mismagius | 17/20 / 17/20 | 72 / 98 · 68 / 93 | ~4.000 | a medias |
+| Hiperrayo + Maquinación + Fortaleza | 10 especiales (Reshiram, Eternatus...) | 34/80 | 52-66 / 63-92 | 1.000-2.400 | **no** |
+
+**Spectrier**: Movimiento inicial **Bola Sombra**; vetos, 3 cualesquiera que no sean de la receta; primer
+minuto, Maquinación y Fortaleza sin coger ningún otro ataque; vínculos Bola Sombra + Maquinación, luego
+Fortaleza [CONJETURA, el orden no se ha comparado]; Pañuelo Elección. Al ser Fantasma puro, Bola Sombra hace
++20 % y Relincho Negro +15 % en cuanto lleva 30 derrotados. [CÓDIGO]
+
+De la v5 (sin habilidades):
+
 | build | ejemplo | llegan al 30 | nivel min 15 / 30 | derrotados | ¿bola de nieve? |
 |---|---|---|---|---|---|
 | Fantasma con el bot normal (Viento Aciago, Bola Sombra, a veces Maquinación) | **Gengar** | 53 % (60 partidas) | 82 / 118 | 2.863 | a medias: el doble de nivel que la media, un tercio de las muertes del Acero |
@@ -301,11 +316,16 @@ minuto 21 (`node sim/cardorder.js sim/out/v5/pool-pfr.jsonl --dex N`). [MEDIDO, 
 | Contar con el veneno para la Sentencia | contra los legendarios grandes quita como si tuvieran 10 veces menos vida | [CÓDIGO] |
 
 ---
+| Aprender MT con la receta de Acero | la MT entra en tu lista de ataques: salen menos Danza Espada y Fortaleza | [CÓDIGO] |
+| Gastar en Cápsula Oculta o Menta "para la build" | con esta receta las pruebas de habilidad y naturaleza caben en el ruido (salvo Lucario: Impasible) | [MEDIDO, 10 por fila] |
+
+---
 
 ## 9. Datos y cómo repetirlo
 
 | qué | archivo |
 |---|---|
+| **v6 (21-10-2026): criba, ronda fuerte, receta de Acero, habilidades, Spectrier** | `sim/RESULTS-v6.md`, `sim/out/v6/` |
 | Todas las tablas | `sim/RESULTS-v5.md` |
 | Priofast antes/ahora (8 Acero × 20, semillas 701-720) | `sim/out/v5/steel-{normal,pf,pfr,pfrs}.jsonl` |
 | Criba (966 × 2, corte en el min 15) | `sim/out/v5/screen.jsonl`, `node sim/screenreport.js` |
@@ -323,4 +343,6 @@ node sim/run.js --dex 638 --bot best --upgrades max --ban auto --max 1900 --seed
   --opts '{"priority":["meteor-mash","swords-dance","harden"],"reserve":true,"statWeights":{"spd":3},"itemRank":'"$IR"'}'
 ```
 
-Con Movimiento inicial = Puño Meteoro, añadir `"start":"auto"` (empieza con el 1.º de `priority`).
+Con Movimiento inicial = Puño Meteoro, añadir `"start":"auto"` (empieza con el 1.º de `priority`). Desde el
+21-10-2026, `"abil":"best"` (la mejor habilidad no oculta, `sim/abilpick.js`), `"nature":"jolly"` y
+`"start2":"tackle"` (Segundo movimiento inicial) también van en `--opts`.
